@@ -20,9 +20,10 @@ describe('GraphQLSDLToParseSchema', () => {
 
       type Company {
         name: String
+        teams: [Team]
       }
     `;
-    SDLTransformer(parseServer, typeDefs);
+    (new SDLTransformer(parseServer)).checkSchema(typeDefs);
   });
 
   it('should remove fields in Parse.Schema when not exist in SDL', () => {});

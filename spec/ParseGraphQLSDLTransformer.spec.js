@@ -23,7 +23,7 @@ describe('GraphQLSDLToParseSchema', () => {
         teams: [Team]
       }
     `;
-    (new SDLTransformer(parseServer)).checkSchema(typeDefs);
+    new SDLTransformer(parseServer).checkSchema(typeDefs);
   });
 
   it('should remove fields in Parse.Schema when not exist in SDL', () => {});

@@ -4,7 +4,9 @@ import rest from '../../rest';
 import { transformQueryInputToParse } from '../transformers/query';
 
 const hasCustomField = (fields, keys) =>
-  !!keys.find(keyName => !fields[keyName.split('.')[0]]);
+  keys
+    ? !!keys.split(',').find(keyName => !fields[keyName.split('.')[0]])
+    : true;
 
 const getObject = async (
   className,

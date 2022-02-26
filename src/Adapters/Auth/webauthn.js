@@ -4,10 +4,10 @@
  * User need to be logged in to setup the webauthn provider
  */
 import {
-  generateAttestationOptions,
-  verifyAttestationResponse,
-  generateAssertionOptions,
-  verifyAssertionResponse,
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
 import Parse from 'parse/node';
 import { sign, verify } from 'jsonwebtoken';
@@ -65,7 +65,7 @@ const extractSignedChallenge = (signedChallenge, config) => {
 // Return credentials options to the client
 // for register public key process
 const registerOptions = (user, options = {}, config) => {
-  const attestationOptions = generateAttestationOptions({
+  const registrationOptions = generateRegistrationOptions({
     rpName:
       (options && options.rpName) ||
       toUserFriendlyRpName(config.publicServerURL || config.serverURL),
@@ -94,40 +94,40 @@ const registerOptions = (user, options = {}, config) => {
     // Use jwt signed challenge to avoid storing challenge in DB
     // Master key is considered safe here to sign the challenge
     // Add additional 20sec for a bad network latency
-    signedChallenge: sign({ challenge: attestationOptions.challenge }, getJwtSecret(config), {
-      expiresIn: attestationOptions.timeout + 20000,
+    signedChallenge: sign({ challenge: registrationOptions.challenge }, getJwtSecret(config), {
+      expiresIn: registrationOptions.timeout + 20000,
     }),
-    options: attestationOptions,
+    options: registrationOptions,
   };
 };
 
-// Verify the attestation provided by the client
-const verifyRegister = async ({ signedChallenge, attestation }, options = {}, config) => {
-  if (!attestation) throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'attestation is required.');
+// Verify the registration provided by the client
+const verifyRegister = async ({ signedChallenge, registration }, options = {}, config) => {
+  if (!registration) throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'registration is required.');
   const expectedChallenge = extractSignedChallenge(signedChallenge, config);
   try {
-    const { verified, attestationInfo } = await verifyAttestationResponse({
-      credential: attestation,
+    const { verified, registrationInfo } = await verifyRegistrationResponse({
+      credential: registration,
       expectedChallenge,
       expectedOrigin: options.origin || getOrigin(config),
       expectedRPID: options.rpId || getOrigin(config),
     });
     if (verified) {
       return {
-        counter: attestationInfo.counter,
-        publicKey: attestationInfo.credentialPublicKey.toString('base64'),
-        id: attestation.id,
+        counter: registrationInfo.counter,
+        publicKey: registrationInfo.credentialPublicKey.toString('base64'),
+        id: registration.id,
       };
     }
     /* istanbul ignore next: fail safe */
     throw new Error();
   } catch (e) {
-    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'Invalid webauthn attestation');
+    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'Invalid webauthn registration');
   }
 };
 
 const loginOptions = config => {
-  const options = generateAssertionOptions();
+  const options = generateAuthenticationOptions();
   return {
     options,
     signedChallenge: sign({ challenge: options.challenge }, getJwtSecret(config), {
@@ -136,13 +136,14 @@ const loginOptions = config => {
   };
 };
 
-const verifyLogin = ({ assertion, signedChallenge }, options = {}, config, user) => {
+const verifyLogin = ({ authentication, signedChallenge }, options = {}, config, user) => {
   const dbAuthData = user && user.get('authData') && user.get('authData').webauthn;
-  if (!assertion) throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'assertion is required.');
+  if (!authentication)
+    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'authentication is required.');
   const expectedChallenge = extractSignedChallenge(signedChallenge, config);
   try {
-    const { verified, assertionInfo } = verifyAssertionResponse({
-      credential: assertion,
+    const { verified, authenticationInfo } = verifyAuthenticationResponse({
+      credential: authentication,
       expectedChallenge,
       expectedOrigin: options.origin || getOrigin(config),
       expectedRPID: options.rpId || getOrigin(config),
@@ -155,13 +156,13 @@ const verifyLogin = ({ assertion, signedChallenge }, options = {}, config, user)
     if (verified) {
       return {
         ...dbAuthData,
-        counter: assertionInfo.newCounter,
+        counter: authenticationInfo.newCounter,
       };
     }
     /* istanbul ignore next: fail safe */
     throw new Error();
   } catch (e) {
-    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'Invalid webauthn assertion');
+    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'Invalid webauthn authentication');
   }
 };
 

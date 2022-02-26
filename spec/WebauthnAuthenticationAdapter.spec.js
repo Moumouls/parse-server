@@ -8,7 +8,7 @@ describe('Webauthn', () => {
     'X-Parse-REST-API-Key': 'rest',
   };
 
-  const clientAttestation = {
+  const clientRegistration = {
     id: 'VHzbxaYaJu2P8m1Y2iHn2gRNHrgK0iYbn9E978L3Qi7Q-chFeicIHwYCRophz5lth2nCgEVKcgWirxlgidgbUQ',
     rawId: 'VHzbxaYaJu2P8m1Y2iHn2gRNHrgK0iYbn9E978L3Qi7Q-chFeicIHwYCRophz5lth2nCgEVKcgWirxlgidgbUQ',
     response: {
@@ -20,11 +20,11 @@ describe('Webauthn', () => {
     clientExtensionResults: {},
     type: 'public-key',
   };
-  const attestationOrigin = 'https://dev.dontneeda.pw';
-  const attestationRpId = 'dev.dontneeda.pw';
-  const attestationChallenge = 'dG90YWxseVVuaXF1ZVZhbHVlRXZlcnlBdHRlc3RhdGlvbg';
+  const registrationOrigin = 'https://dev.dontneeda.pw';
+  const registrationRpId = 'dev.dontneeda.pw';
+  const registrationChallenge = 'dG90YWxseVVuaXF1ZVZhbHVlRXZlcnlBdHRlc3RhdGlvbg';
 
-  const clientAssertion = {
+  const clientAuthentication = {
     id: 'wSisR0_4hlzw3Y1tj4uNwwifIhRa-ZxWJwWbnfror0pVK9qPdBPO5pW3gasPqn6wXHb0LNhXB_IrA1nFoSQJ9A',
     rawId: 'wSisR0_4hlzw3Y1tj4uNwwifIhRa-ZxWJwWbnfror0pVK9qPdBPO5pW3gasPqn6wXHb0LNhXB_IrA1nFoSQJ9A',
     response: {
@@ -37,10 +37,10 @@ describe('Webauthn', () => {
     type: 'public-key',
   };
 
-  const assertionChallenge = 'dG90YWxseVVuaXF1ZVZhbHVlRXZlcnlBc3NlcnRpb24';
-  const assertionOrigin = 'https://dev.dontneeda.pw';
-  const assertionRpId = 'dev.dontneeda.pw';
-  const assertionCredential = {
+  const authenticationChallenge = 'dG90YWxseVVuaXF1ZVZhbHVlRXZlcnlBc3NlcnRpb24';
+  const authenticationOrigin = 'https://dev.dontneeda.pw';
+  const authenticationRpId = 'dev.dontneeda.pw';
+  const authenticationCredential = {
     publicKey:
       'pQECAyYgASFYIGmaxR4mBbukc2QhtW2ldhAAd555r-ljlGQN8MbcTnPPIlgg9CyUlE-0AB2fbzZbNgBvJuRa7r6o2jPphOmtyNPR_kY',
     id: 'wSisR0_4hlzw3Y1tj4uNwwifIhRa-ZxWJwWbnfror0pVK9qPdBPO5pW3gasPqn6wXHb0LNhXB_IrA1nFoSQJ9A',
@@ -115,14 +115,14 @@ describe('Webauthn', () => {
     });
 
     await reconfigureServer({
-      auth: { webauthn: { options: { rpId: attestationRpId, origin: attestationOrigin } } },
+      auth: { webauthn: { options: { rpId: registrationRpId, origin: registrationOrigin } } },
     });
 
     await expectAsync(
       user.save(
         {
           authData: {
-            webauthn: { attestation: clientAttestation, signedChallenge: 'test' },
+            webauthn: { registration: clientRegistration, signedChallenge: 'test' },
           },
         },
         { sessionToken: user.getSessionToken() }
@@ -134,7 +134,7 @@ describe('Webauthn', () => {
         {
           authData: {
             webauthn: {
-              attestation: clientAttestation,
+              registration: clientRegistration,
               // Non base 64 challenge
               signedChallenge: sign({ challenge: 'test' }, jwtSecret),
             },
@@ -142,14 +142,14 @@ describe('Webauthn', () => {
         },
         { sessionToken: user.getSessionToken() }
       )
-    ).toBeRejectedWithError('Invalid webauthn attestation');
+    ).toBeRejectedWithError('Invalid webauthn registration');
 
     await expectAsync(
       user.save(
         {
           authData: {
             webauthn: {
-              attestation: clientAttestation,
+              registration: clientRegistration,
               // Incomplete signed challenge
               signedChallenge: sign({}, jwtSecret),
             },
@@ -164,7 +164,7 @@ describe('Webauthn', () => {
         {
           authData: {
             webauthn: {
-              attestation: clientAttestation,
+              registration: clientRegistration,
               signedChallenge: sign(
                 // Wrong base 64 challenge
                 { challenge: 'dG90YWxseVVuaXF1ZVZhbHVlRXZlcnlBdHRlc3RhdGlvbw==' },
@@ -175,7 +175,7 @@ describe('Webauthn', () => {
         },
         { sessionToken: user.getSessionToken() }
       )
-    ).toBeRejectedWithError('Invalid webauthn attestation');
+    ).toBeRejectedWithError('Invalid webauthn registration');
 
     await expectAsync(
       user.save(
@@ -183,7 +183,7 @@ describe('Webauthn', () => {
           authData: {
             webauthn: {
               // Signed challenge not provided
-              attestation: clientAttestation,
+              registration: clientRegistration,
             },
           },
         },
@@ -196,20 +196,20 @@ describe('Webauthn', () => {
         {
           authData: {
             webauthn: {
-              // Missing attestation
+              // Missing registration
             },
           },
         },
         { sessionToken: user.getSessionToken() }
       )
-    ).toBeRejectedWithError('attestation is required.');
+    ).toBeRejectedWithError('registration is required.');
 
     await user.save(
       {
         authData: {
           webauthn: {
-            attestation: clientAttestation,
-            signedChallenge: sign({ challenge: attestationChallenge }, jwtSecret),
+            registration: clientRegistration,
+            signedChallenge: sign({ challenge: registrationChallenge }, jwtSecret),
           },
         },
       },
@@ -219,7 +219,7 @@ describe('Webauthn', () => {
     await user.fetch({ useMasterKey: true });
     const webauthnAuthData = user.get('authData').webauthn;
     expect(webauthnAuthData).toBeDefined();
-    expect(webauthnAuthData.id).toEqual(clientAttestation.id);
+    expect(webauthnAuthData.id).toEqual(clientRegistration.id);
     expect(webauthnAuthData.counter).toEqual(0);
     expect(typeof webauthnAuthData.publicKey).toEqual('string');
   });
@@ -231,15 +231,15 @@ describe('Webauthn', () => {
     await user.save({ username: 'username', password: 'password' });
 
     await reconfigureServer({
-      auth: { webauthn: { options: { rpId: attestationRpId, origin: attestationOrigin } } },
+      auth: { webauthn: { options: { rpId: registrationRpId, origin: registrationOrigin } } },
     });
 
     await user.save(
       {
         authData: {
           webauthn: {
-            attestation: clientAttestation,
-            signedChallenge: sign({ challenge: attestationChallenge }, jwtSecret),
+            registration: clientRegistration,
+            signedChallenge: sign({ challenge: registrationChallenge }, jwtSecret),
           },
         },
       },
@@ -249,13 +249,13 @@ describe('Webauthn', () => {
     await user.fetch({ useMasterKey: true });
     const webauthnAuthData = user.get('authData').webauthn;
     expect(webauthnAuthData).toBeDefined();
-    expect(webauthnAuthData.id).toEqual(clientAttestation.id);
+    expect(webauthnAuthData.id).toEqual(clientRegistration.id);
     expect(webauthnAuthData.counter).toEqual(0);
     expect(typeof webauthnAuthData.publicKey).toEqual('string');
   });
   it('should update registered credential', async () => {
     const server = await reconfigureServer({
-      auth: { webauthn: { options: { rpId: attestationRpId, origin: attestationOrigin } } },
+      auth: { webauthn: { options: { rpId: registrationRpId, origin: registrationOrigin } } },
     });
 
     const user = new Parse.User();
@@ -267,12 +267,12 @@ describe('Webauthn', () => {
       { authData: { webauthn: { id: 'credId', publicKey: 'test', counter: 6 } } },
       {}
     );
-    const fakedSignedChallenge = sign({ challenge: attestationChallenge }, jwtSecret);
+    const fakedSignedChallenge = sign({ challenge: registrationChallenge }, jwtSecret);
 
     await user.save(
       {
         authData: {
-          webauthn: { attestation: clientAttestation, signedChallenge: fakedSignedChallenge },
+          webauthn: { registration: clientRegistration, signedChallenge: fakedSignedChallenge },
         },
       },
       { sessionToken: user.getSessionToken() }
@@ -281,20 +281,20 @@ describe('Webauthn', () => {
     await user.fetch({ useMasterKey: true });
     const webauthnAuthData = user.get('authData').webauthn;
     expect(webauthnAuthData).toBeDefined();
-    expect(webauthnAuthData.id).toEqual(clientAttestation.id);
+    expect(webauthnAuthData.id).toEqual(clientRegistration.id);
     expect(webauthnAuthData.counter).toEqual(0);
     expect(typeof webauthnAuthData.publicKey).toEqual('string');
   });
   it('should login', async () => {
     const server = await reconfigureServer({
-      auth: { webauthn: { options: { rpId: assertionRpId, origin: assertionOrigin } } },
+      auth: { webauthn: { options: { rpId: authenticationRpId, origin: authenticationOrigin } } },
     });
     const user = new Parse.User();
     await user.save({ username: 'username', password: 'password' });
     await server.config.databaseController.update(
       '_User',
       { objectId: user.id },
-      { authData: { webauthn: assertionCredential } },
+      { authData: { webauthn: authenticationCredential } },
       {}
     );
 
@@ -309,31 +309,31 @@ describe('Webauthn', () => {
       user2.save({
         authData: {
           webauthn: {
-            id: assertionCredential.id,
-            // Assertion is missing
+            id: authenticationCredential.id,
+            // Authentication is missing
           },
         },
       })
-    ).toBeRejectedWithError('assertion is required.');
+    ).toBeRejectedWithError('authentication is required.');
 
     await expectAsync(
       user2.save({
         authData: {
           webauthn: {
-            id: assertionCredential.id,
-            assertion: clientAssertion,
+            id: authenticationCredential.id,
+            authentication: clientAuthentication,
             signedChallenge: sign({ challenge: 'test' }, jwtSecret),
           },
         },
       })
-    ).toBeRejectedWithError('Invalid webauthn assertion');
+    ).toBeRejectedWithError('Invalid webauthn authentication');
 
     await user2.save({
       authData: {
         webauthn: {
-          id: assertionCredential.id,
-          assertion: clientAssertion,
-          signedChallenge: sign({ challenge: assertionChallenge }, jwtSecret),
+          id: authenticationCredential.id,
+          authentication: clientAuthentication,
+          signedChallenge: sign({ challenge: authenticationChallenge }, jwtSecret),
         },
       },
     });
@@ -342,9 +342,9 @@ describe('Webauthn', () => {
     expect(user2.id).toEqual(user.id);
     await user2.fetch({ useMasterKey: true });
     const webauthnAuthData = user2.get('authData').webauthn;
-    expect(webauthnAuthData.publicKey).toEqual(assertionCredential.publicKey);
-    expect(webauthnAuthData.id).toEqual(assertionCredential.id);
-    expect(webauthnAuthData.counter).toEqual(assertionCredential.counter);
+    expect(webauthnAuthData.publicKey).toEqual(authenticationCredential.publicKey);
+    expect(webauthnAuthData.id).toEqual(authenticationCredential.id);
+    expect(webauthnAuthData.counter).toEqual(authenticationCredential.counter);
   });
   it('should handle options rpId, rpName, origin, getUsername, getUserDisplayName, attestationType, requireResidentKey', async () => {
     await reconfigureServer({

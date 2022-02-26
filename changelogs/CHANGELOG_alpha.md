@@ -1,3 +1,24 @@
+# [5.0.0-alpha.26](https://github.com/parse-community/parse-server/compare/5.0.0-alpha.25...5.0.0-alpha.26) (2022-02-25)
+
+
+### Bug Fixes
+
+* package.json & package-lock.json to reduce vulnerabilities ([#7823](https://github.com/parse-community/parse-server/issues/7823)) ([5ca2288](https://github.com/parse-community/parse-server/commit/5ca228882332b65f3ac05407e6e4da1ee3ef3749))
+
+# [5.0.0-alpha.25](https://github.com/parse-community/parse-server/compare/5.0.0-alpha.24...5.0.0-alpha.25) (2022-02-23)
+
+
+### Bug Fixes
+
+* upgrade winston from 3.5.0 to 3.5.1 ([#7820](https://github.com/parse-community/parse-server/issues/7820)) ([4af253d](https://github.com/parse-community/parse-server/commit/4af253d1f8654a6f57b5137ad310cdacadc922cc))
+
+# [5.0.0-alpha.24](https://github.com/parse-community/parse-server/compare/5.0.0-alpha.23...5.0.0-alpha.24) (2022-02-10)
+
+
+### Bug Fixes
+
+* security upgrade follow-redirects from 1.14.7 to 1.14.8 ([#7801](https://github.com/parse-community/parse-server/issues/7801)) ([70088a9](https://github.com/parse-community/parse-server/commit/70088a95a78393da2a4ac68be81e63107747626a))
+
 # [5.0.0-alpha.23](https://github.com/parse-community/parse-server/compare/5.0.0-alpha.22...5.0.0-alpha.23) (2022-02-06)
 
 

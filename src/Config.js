@@ -35,7 +35,7 @@ export class Config {
     config.applicationId = applicationId;
     Object.keys(cacheInfo).forEach(key => {
       if (key == 'databaseController') {
-        config.database = new DatabaseController(cacheInfo.databaseController.adapter);
+        config.database = new DatabaseController(cacheInfo.databaseController.adapter, config);
       } else {
         config[key] = cacheInfo[key];
       }
@@ -118,6 +118,15 @@ export class Config {
     this.validateSchemaOptions(schema);
     this.validateEnforcePrivateUsers(enforcePrivateUsers);
     this.validateAllowOldAuthDataToken(allowOldAuthDataToken);
+    this.validateRequestKeywordDenylist(requestKeywordDenylist);
+  }
+
+  static validateRequestKeywordDenylist(requestKeywordDenylist) {
+    if (requestKeywordDenylist === undefined) {
+      requestKeywordDenylist = requestKeywordDenylist.default;
+    } else if (!Array.isArray(requestKeywordDenylist)) {
+      throw 'Parse Server option requestKeywordDenylist must be an array.';
+    }
   }
 
   static validateEnforcePrivateUsers(enforcePrivateUsers) {

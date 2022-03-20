@@ -183,7 +183,7 @@ export class UsersRouter extends ClassesRouter {
   async handleLogIn(req) {
     const user = await this._authenticateUserFromRequest(req);
     const authData = req.body && req.body.authData;
-    // Check if user has provided his required auth providers
+    // Check if user has provided their required auth providers
     Auth.checkIfUserHasProvidedConfiguredProvidersForLogin(authData, user.authData, req.config);
 
     let authDataResponse;
@@ -239,8 +239,7 @@ export class UsersRouter extends ClassesRouter {
       req.config
     );
 
-    // If we have some new validated authData
-    // update directly
+    // If we have some new validated authData update directly
     if (validatedAuthData && Object.keys(validatedAuthData).length) {
       await req.config.database.update(
         '_User',
@@ -482,8 +481,7 @@ export class UsersRouter extends ClassesRouter {
   async handleChallenge(req) {
     const { username, email, password, authData, challengeData } = req.body;
 
-    // if username or email provided with password try to find the user with default
-    // system
+    // if username or email provided with password try to authenticate the user by username
     let user;
     if (username || email) {
       if (!password)
@@ -503,7 +501,6 @@ export class UsersRouter extends ClassesRouter {
     if (authData) {
       if (typeof authData !== 'object')
         throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'authData should be an object.');
-      // To avoid security issue we should only support one identifying method
       if (user)
         throw new Parse.Error(
           Parse.Error.OTHER_CAUSE,
@@ -526,8 +523,7 @@ export class UsersRouter extends ClassesRouter {
         // Find the provider used to find the user
         const provider = Object.keys(authData).find(key => authData[key].id);
 
-        // Validate authData used to identify the user
-        // to avoid guess id attack
+        // Validate authData used to identify the user to avoid guess id attack
         const { validator } = req.config.authDataManager.getValidatorForProvider(provider);
         await validator(
           authData[provider],
@@ -542,8 +538,8 @@ export class UsersRouter extends ClassesRouter {
       }
     }
 
-    // Execute challenge step by step
-    // with consistent order
+    // Execute challenge step by step with consistent order for better error feedback
+    // and to avoid to trigger others challenges if one of them fail
     const challenge = await Auth.reducePromise(
       Object.keys(challengeData).sort(),
       async (acc, provider) => {

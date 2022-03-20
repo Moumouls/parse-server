@@ -91,7 +91,6 @@ const getAuthForSessionToken = async function ({
       limit: 1,
       include: 'user',
     };
-    // For cyclic dep
     const RestQuery = require('./RestQuery');
     const query = new RestQuery(config, master(config), '_Session', { sessionToken }, restOptions);
     results = (await query.execute()).results;
@@ -134,7 +133,6 @@ var getAuthForLegacySessionToken = function ({ config, sessionToken, installatio
   var restOptions = {
     limit: 1,
   };
-  // For cyclic dep
   const RestQuery = require('./RestQuery');
   var query = new RestQuery(config, master(config), '_User', { sessionToken }, restOptions);
   return query.execute().then(response => {
@@ -180,7 +178,6 @@ Auth.prototype.getRolesForUser = async function () {
         objectId: this.user.id,
       },
     };
-    // For cyclic dep
     const RestQuery = require('./RestQuery');
     await new RestQuery(this.config, master(this.config), '_Role', restWhere, {}).each(result =>
       results.push(result)
@@ -266,7 +263,6 @@ Auth.prototype.getRolesByIds = async function (ins) {
       };
     });
     const restWhere = { roles: { $in: roles } };
-    // For cyclic dep
     const RestQuery = require('./RestQuery');
     await new RestQuery(this.config, master(this.config), '_Role', restWhere, {}).each(result =>
       results.push(result)
@@ -369,9 +365,9 @@ const checkIfUserHasProvidedConfiguredProvidersForLogin = (
       provider && provider.adapter && provider.adapter.policy === 'solo' && authData[provider.name]
   );
 
-  // Solo providers can be considered as safe
-  // so we do not have to check if the user need
-  // to provide an additional provider to login
+  // Solo providers can be considered as safe, so we do not have to check if the user need
+  // to provide an additional provider to login. An auth adapter with "solo" (like webauthn) means
+  // that no "additional" auth need be provided to login (like OTP, MFA)
   if (hasProvidedASoloProvider) return;
 
   const additionProvidersNotFound = [];
@@ -380,7 +376,7 @@ const checkIfUserHasProvidedConfiguredProvidersForLogin = (
       if (authData[provider.name]) {
         return true;
       } else {
-        // Push missing provider for plausible error return
+        // Push missing provider for error message
         additionProvidersNotFound.push(provider.name);
       }
     }
@@ -398,8 +394,7 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
   let user;
   if (foundUser) {
     user = Parse.User.fromJSON({ className: '_User', ...foundUser });
-    // Find the user by session and current object id
-    // Only pass user if it's the current one or master key with provided user
+    // Find user by session and current objectId; only pass user if it's the current user or master key is provided
   } else if (
     (req.auth &&
       req.auth.user &&
@@ -412,12 +407,10 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
     await user.fetch({ useMasterKey: true });
   }
 
-  // Perform validation as step by step pipeline
-  // for better error consistency and also to avoid to trigger a provider (like OTP SMS)
-  // if another one fail
+  // Perform validation as step by step pipeline for better error consistency
+  // and also to avoid to trigger a provider (like OTP SMS) if another one fail
   return reducePromise(
     // apply sort to run the pipeline each time in the same order
-
     Object.keys(authData).sort(),
     async (acc, provider) => {
       if (authData[provider] === null) {
@@ -440,14 +433,12 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
         if (!Object.keys(validationResult).length) acc.authData[provider] = authData[provider];
 
         if (validationResult.response) acc.authDataResponse[provider] = validationResult.response;
-        // Some auth providers after initialization will avoid
-        // to replace authData already stored
+        // Some auth providers after initialization will avoid to replace authData already stored
         if (!validationResult.doNotSave) {
           acc.authData[provider] = validationResult.save || authData[provider];
         }
       } else {
-        // Support current authData behavior
-        // no result store the new AuthData
+        // Support current authData behavior no result store the new AuthData
         acc.authData[provider] = authData[provider];
       }
       return acc;

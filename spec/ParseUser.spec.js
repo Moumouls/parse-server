@@ -13,51 +13,51 @@ const passwordCrypto = require('../lib/password');
 const Config = require('../lib/Config');
 const cryptoUtils = require('../lib/cryptoUtils');
 
-describe('allowOldAuthDataToken option', () => {
+describe('allowExpiredAuthDataToken option', () => {
   it('should accept true value', async () => {
     const logger = require('../lib/logger').logger;
-    const logSpy = spyOn(logger, 'warn').and.callFake(() => {});
-    await reconfigureServer({ allowOldAuthDataToken: true });
-    expect(Config.get(Parse.applicationId).allowOldAuthDataToken).toBe(true);
+    const logSpy = spyOn(logger, 'warn').and.callFake(() => { });
+    await reconfigureServer({ allowExpiredAuthDataToken: true });
+    expect(Config.get(Parse.applicationId).allowExpiredAuthDataToken).toBe(true);
     expect(
       logSpy.calls
         .all()
         .filter(
           log =>
             log.args[0] ===
-            `DeprecationWarning: The Parse Server option 'allowOldAuthDataToken' default will change to 'false' in a future version.`
+            `DeprecationWarning: The Parse Server option 'allowExpiredAuthDataToken' default will change to 'false' in a future version.`
         ).length
     ).toEqual(0);
   });
 
   it('should accept false value', async () => {
     const logger = require('../lib/logger').logger;
-    const logSpy = spyOn(logger, 'warn').and.callFake(() => {});
-    await reconfigureServer({ allowOldAuthDataToken: false });
-    expect(Config.get(Parse.applicationId).allowOldAuthDataToken).toBe(false);
+    const logSpy = spyOn(logger, 'warn').and.callFake(() => { });
+    await reconfigureServer({ allowExpiredAuthDataToken: false });
+    expect(Config.get(Parse.applicationId).allowExpiredAuthDataToken).toBe(false);
     expect(
       logSpy.calls
         .all()
         .filter(
           log =>
             log.args[0] ===
-            `DeprecationWarning: The Parse Server option 'allowOldAuthDataToken' default will change to 'false' in a future version.`
+            `DeprecationWarning: The Parse Server option 'allowExpiredAuthDataToken' default will change to 'false' in a future version.`
         ).length
     ).toEqual(0);
   });
 
   it('should default true', async () => {
     const logger = require('../lib/logger').logger;
-    const logSpy = spyOn(logger, 'warn').and.callFake(() => {});
+    const logSpy = spyOn(logger, 'warn').and.callFake(() => { });
     await reconfigureServer({});
-    expect(Config.get(Parse.applicationId).allowOldAuthDataToken).toBe(true);
+    expect(Config.get(Parse.applicationId).allowExpiredAuthDataToken).toBe(true);
     expect(
       logSpy.calls
         .all()
         .filter(
           log =>
             log.args[0] ===
-            `DeprecationWarning: The Parse Server option 'allowOldAuthDataToken' default will change to 'false' in a future version.`
+            `DeprecationWarning: The Parse Server option 'allowExpiredAuthDataToken' default will change to 'false' in a future version.`
         ).length
     ).toEqual(1);
   });
@@ -65,7 +65,7 @@ describe('allowOldAuthDataToken option', () => {
   it('should enforce boolean values', async () => {
     const options = [[], 'a', '', 0, 1, {}, 'true', 'false'];
     for (const option of options) {
-      await expectAsync(reconfigureServer({ allowOldAuthDataToken: option })).toBeRejected();
+      await expectAsync(reconfigureServer({ allowExpiredAuthDataToken: option })).toBeRejected();
     }
   });
 });
@@ -1849,7 +1849,7 @@ describe('Parse.User testing', () => {
     });
   });
 
-  it('should allow login with old authData token by default', async () => {
+  it('should allow login with expired authData token by default', async () => {
     const provider = {
       authData: {
         id: '12345',
@@ -1878,8 +1878,8 @@ describe('Parse.User testing', () => {
     await Parse.User._logInWith('shortLivedAuth', {});
   });
 
-  it('should not allow login with old authData token when allowOldAuthDataToken is set to false', async () => {
-    await reconfigureServer({ allowOldAuthDataToken: false });
+  it('should not allow login with expired authData token when allowExpiredAuthDataToken is set to false', async () => {
+    await reconfigureServer({ allowExpiredAuthDataToken: false });
     const provider = {
       authData: {
         id: '12345',
@@ -3341,7 +3341,7 @@ describe('Parse.User testing', () => {
 
   it('should not allow updates to emailVerified', done => {
     const emailAdapter = {
-      sendVerificationEmail: () => {},
+      sendVerificationEmail: () => { },
       sendPasswordResetEmail: () => Promise.resolve(),
       sendMail: () => Promise.resolve(),
     };
@@ -3377,7 +3377,7 @@ describe('Parse.User testing', () => {
 
   it('should not retrieve hidden fields on GET users/me (#3432)', done => {
     const emailAdapter = {
-      sendVerificationEmail: () => {},
+      sendVerificationEmail: () => { },
       sendPasswordResetEmail: () => Promise.resolve(),
       sendMail: () => Promise.resolve(),
     };
@@ -3420,7 +3420,7 @@ describe('Parse.User testing', () => {
 
   it('should not retrieve hidden fields on GET users/id (#3432)', done => {
     const emailAdapter = {
-      sendVerificationEmail: () => {},
+      sendVerificationEmail: () => { },
       sendPasswordResetEmail: () => Promise.resolve(),
       sendMail: () => Promise.resolve(),
     };
@@ -3465,7 +3465,7 @@ describe('Parse.User testing', () => {
 
   it('should not retrieve hidden fields on login (#3432)', done => {
     const emailAdapter = {
-      sendVerificationEmail: () => {},
+      sendVerificationEmail: () => { },
       sendPasswordResetEmail: () => Promise.resolve(),
       sendMail: () => Promise.resolve(),
     };
@@ -3509,7 +3509,7 @@ describe('Parse.User testing', () => {
 
   it('should not allow updates to hidden fields', done => {
     const emailAdapter = {
-      sendVerificationEmail: () => {},
+      sendVerificationEmail: () => { },
       sendPasswordResetEmail: () => Promise.resolve(),
       sendMail: () => Promise.resolve(),
     };

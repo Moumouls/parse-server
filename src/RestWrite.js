@@ -568,7 +568,7 @@ RestWrite.prototype.handleAuthData = async function (authData) {
 
       // Force to validate all provided authData on login
       // on update only validate mutated ones
-      if (hasMutatedAuthData || !this.config.allowOldAuthDataToken) {
+      if (hasMutatedAuthData || !this.config.allowExpiredAuthDataToken) {
         const res = await Auth.handleAuthDataValidation(
           isLogin ? authData : mutatedAuthData,
           this,
@@ -1226,7 +1226,7 @@ RestWrite.prototype.handleInstallation = function () {
           throw new Parse.Error(
             132,
             'Must specify installationId when deviceToken ' +
-              'matches multiple Installation objects'
+            'matches multiple Installation objects'
           );
         } else {
           // Multiple device token matches and we specified an installation ID,

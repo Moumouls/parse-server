@@ -383,7 +383,7 @@ const load = parseGraphQLSchema => {
   const challengeMutation = mutationWithClientMutationId({
     name: 'Challenge',
     description:
-      'The challenge mutation can be used to initiate an authentication challenge when an auth adapter need it.',
+      'The challenge mutation can be used to initiate an authentication challenge when an auth adapter needs it.',
     inputFields: {
       username: {
         description: 'This is the username used to log in the user.',
@@ -395,12 +395,12 @@ const load = parseGraphQLSchema => {
       },
       authData: {
         description:
-          'Auth data allow to pre identify the user if the auth adapter need pre identification.',
+          'Auth data allow to preidentify the user if the auth adapter needs preidentification.',
         type: OBJECT,
       },
       challengeData: {
         description:
-          'Challenge data payload, could be used to post some data to auth providers if they need data for the response.',
+          'Challenge data payload, can be used to post data to auth providers to auth providers if they need data for the response.',
         type: OBJECT,
       },
     },

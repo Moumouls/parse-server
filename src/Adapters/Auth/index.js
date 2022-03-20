@@ -76,8 +76,7 @@ function authDataValidator(provider, adapter, appIds, options) {
       typeof adapter.validateLogin === 'function' &&
       typeof adapter.validateUpdate === 'function'
     ) {
-      // We can consider for DX purpose when masterKey is detected, we should
-      // trigger a logged in user
+      // When masterKey is detected, we should trigger a logged in user
       const isLoggedIn =
         (req.auth.user && user && req.auth.user.id === user.id) || (user && req.auth.isMaster);
       let hasAuthDataConfigured = false;
@@ -87,7 +86,7 @@ function authDataValidator(provider, adapter, appIds, options) {
       }
 
       if (isLoggedIn) {
-        // User is currently updating his authData
+        // User is updating their authData
         if (hasAuthDataConfigured) {
           return adapter.validateUpdate(authData, options, req, user);
         }
@@ -95,13 +94,13 @@ function authDataValidator(provider, adapter, appIds, options) {
         return adapter.validateSetUp(authData, options, req, user);
       }
 
-      // Not logged in and authData configured into the DB
+      // Not logged in and authData is configured on the user
       if (hasAuthDataConfigured) {
         return adapter.validateLogin(authData, options, req, user);
       }
 
-      // Finally, user not logged in and the provider is not setup
-      // use cases: existing user using a new auth provider at login time or new user
+      // User not logged in and the provider is not set up, for example when a new user
+      // signs up or an existing user uses a new auth provider
       return adapter.validateSetUp(authData, options, req, user);
     }
     throw new Parse.Error(
@@ -112,12 +111,10 @@ function authDataValidator(provider, adapter, appIds, options) {
 }
 
 function loadAuthAdapter(provider, authOptions) {
-  // `providers` are default providers already implemented
-  // into parse-server
+  // providers are auth providers implemented by default
   let defaultAdapter = providers[provider];
-  // authOptions could contain a complete custom adapter
-  // or just some options for a default auth parse adapter
-  // like facebook
+  // authOptions can contain complete custom auth adapters or
+  // a default auth adapter like Facebook
   const providerOptions = authOptions[provider];
   if (
     providerOptions &&

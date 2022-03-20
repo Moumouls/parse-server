@@ -28,7 +28,7 @@ module.exports.ParseServerOptions = {
     help: 'Add headers to Access-Control-Allow-Headers',
     action: parsers.arrayParser,
   },
-  allowOldAuthDataToken: {
+  allowExpiredAuthDataToken: {
     env: 'PARSE_SERVER_ALLOW_OLD_AUTH_DATA_TOKEN',
     help: 'Allow login with old authData token.',
     action: parsers.booleanParser,

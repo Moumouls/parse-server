@@ -594,13 +594,11 @@ const buildWhereClause = ({ schema, query, index, caseInsensitive }): WhereClaus
       const distance = fieldValue.$maxDistance;
       const distanceInKM = distance * 6371 * 1000;
       patterns.push(
-        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${
-          index + 2
+        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${index + 2
         })::geometry) <= $${index + 3}`
       );
       sorts.push(
-        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${
-          index + 2
+        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${index + 2
         })::geometry) ASC`
       );
       values.push(fieldName, point.longitude, point.latitude, distanceInKM);
@@ -648,8 +646,7 @@ const buildWhereClause = ({ schema, query, index, caseInsensitive }): WhereClaus
       }
       const distanceInKM = distance * 6371 * 1000;
       patterns.push(
-        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${
-          index + 2
+        `ST_DistanceSphere($${index}:name::geometry, POINT($${index + 1}, $${index + 2
         })::geometry) <= $${index + 3}`
       );
       values.push(fieldName, point.longitude, point.latitude, distanceInKM);
@@ -844,7 +841,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
 
     const { client, pgp } = createClient(uri, databaseOptions);
     this._client = client;
-    this._onchange = () => {};
+    this._onchange = () => { };
     this._pgp = pgp;
     this._uuid = uuidv4();
     this.canSortOnJoinTables = false;
@@ -1314,8 +1311,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
         object['authData'][provider] = object[fieldName];
         delete object[fieldName];
         fieldName = 'authData';
-        // Avoid pushing authData multiple times to the
-        // postgres query
+        // Avoid adding authData multiple times to the query
         if (authDataAlreadyExists) return;
       }
 
@@ -1592,16 +1588,14 @@ export class PostgresStorageAdapter implements StorageAdapter {
         index += 2;
       } else if (fieldValue.__op === 'Remove') {
         updatePatterns.push(
-          `$${index}:name = array_remove(COALESCE($${index}:name, '[]'::jsonb), $${
-            index + 1
+          `$${index}:name = array_remove(COALESCE($${index}:name, '[]'::jsonb), $${index + 1
           }::jsonb)`
         );
         values.push(fieldName, JSON.stringify(fieldValue.objects));
         index += 2;
       } else if (fieldValue.__op === 'AddUnique') {
         updatePatterns.push(
-          `$${index}:name = array_add_unique(COALESCE($${index}:name, '[]'::jsonb), $${
-            index + 1
+          `$${index}:name = array_add_unique(COALESCE($${index}:name, '[]'::jsonb), $${index + 1
           }::jsonb)`
         );
         values.push(fieldName, JSON.stringify(fieldValue.objects));
@@ -1712,8 +1706,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
           updateObject = `COALESCE($${index}:name, '{}'::jsonb)`;
         }
         updatePatterns.push(
-          `$${index}:name = (${updateObject} ${deletePatterns} ${incrementPatterns} || $${
-            index + 1 + keysToDelete.length
+          `$${index}:name = (${updateObject} ${deletePatterns} ${incrementPatterns} || $${index + 1 + keysToDelete.length
           }::jsonb )`
         );
         values.push(fieldName, ...keysToDelete, JSON.stringify(fieldValue));
@@ -2152,8 +2145,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
                     groupByFields.push(`"${source}"`);
                   }
                   columns.push(
-                    `EXTRACT(${
-                      mongoAggregateToPostgres[operation]
+                    `EXTRACT(${mongoAggregateToPostgres[operation]
                     } FROM $${index}:name AT TIME ZONE 'UTC')::integer AS $${index + 1}:name`
                   );
                   values.push(source, alias);

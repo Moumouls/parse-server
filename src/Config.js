@@ -78,7 +78,7 @@ export class Config {
     security,
     enforcePrivateUsers,
     schema,
-    allowOldAuthDataToken,
+    allowExpiredAuthDataToken,
   }) {
     if (masterKey === readOnlyMasterKey) {
       throw new Error('masterKey and readOnlyMasterKey should be different');
@@ -117,7 +117,7 @@ export class Config {
     this.validateSecurityOptions(security);
     this.validateSchemaOptions(schema);
     this.validateEnforcePrivateUsers(enforcePrivateUsers);
-    this.validateAllowOldAuthDataToken(allowOldAuthDataToken);
+    this.validateallowExpiredAuthDataToken(allowExpiredAuthDataToken);
     this.validateRequestKeywordDenylist(requestKeywordDenylist);
   }
 
@@ -135,9 +135,9 @@ export class Config {
     }
   }
 
-  static validateAllowOldAuthDataToken(allowOldAuthDataToken) {
-    if (typeof allowOldAuthDataToken !== 'boolean') {
-      throw 'Parse Server option allowOldAuthDataToken must be a boolean.';
+  static validateallowExpiredAuthDataToken(allowExpiredAuthDataToken) {
+    if (typeof allowExpiredAuthDataToken !== 'boolean') {
+      throw 'Parse Server option allowExpiredAuthDataToken must be a boolean.';
     }
   }
 

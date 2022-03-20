@@ -78,6 +78,7 @@ export class Config {
     security,
     enforcePrivateUsers,
     schema,
+    requestKeywordDenylist,
     allowExpiredAuthDataToken,
   }) {
     if (masterKey === readOnlyMasterKey) {

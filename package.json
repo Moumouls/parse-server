@@ -20,6 +20,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@apollo/client": "3.5.10",
+    "@simplewebauthn/server": "4.4.0",
     "@apollographql/graphql-playground-html": "1.6.29",
     "@graphql-tools/links": "8.2.9",
     "@graphql-tools/stitch": "6.2.4",

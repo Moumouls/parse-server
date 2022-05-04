@@ -1,43 +1,43 @@
 import { GraphQLNonNull } from 'graphql';
 import { mutationWithClientMutationId } from 'graphql-relay';
-import { GraphQLUpload } from '@graphql-tools/links';
 import Parse from 'parse/node';
 import * as defaultGraphQLTypes from './defaultGraphQLTypes';
 import logger from '../../logger';
 
-const handleUpload = async (upload, config) => {
-  const { createReadStream, filename, mimetype } = await upload;
-  let data = null;
-  if (createReadStream) {
-    const stream = createReadStream();
-    data = await new Promise((resolve, reject) => {
-      const chunks = [];
-      stream
-        .on('error', reject)
-        .on('data', chunk => chunks.push(chunk))
-        .on('end', () => resolve(Buffer.concat(chunks)));
-    });
+function toBuffer(ab) {
+  const buf = Buffer.alloc(ab.byteLength);
+  const view = new Uint8Array(ab);
+  for (let i = 0; i < buf.length; ++i) {
+    buf[i] = view[i];
   }
+  return buf;
+}
+
+const handleUpload = async (upload, config) => {
+  const data = toBuffer(await upload.arrayBuffer());
+  console.log(data.length);
+  const fileName = upload.name;
+  const type = upload.type;
 
   if (!data || !data.length) {
     throw new Parse.Error(Parse.Error.FILE_SAVE_ERROR, 'Invalid file upload.');
   }
 
-  if (filename.length > 128) {
+  if (fileName.length > 128) {
     throw new Parse.Error(Parse.Error.INVALID_FILE_NAME, 'Filename too long.');
   }
 
-  if (!filename.match(/^[_a-zA-Z0-9][a-zA-Z0-9@\.\ ~_-]*$/)) {
+  if (!fileName.match(/^[_a-zA-Z0-9][a-zA-Z0-9@\.\ ~_-]*$/)) {
     throw new Parse.Error(Parse.Error.INVALID_FILE_NAME, 'Filename contains invalid characters.');
   }
 
   try {
     return {
-      fileInfo: await config.filesController.createFile(config, filename, data, mimetype),
+      fileInfo: await config.filesController.createFile(config, fileName, data, type),
     };
   } catch (e) {
     logger.error('Error creating a file: ', e);
-    throw new Parse.Error(Parse.Error.FILE_SAVE_ERROR, `Could not store file: ${filename}.`);
+    throw new Parse.Error(Parse.Error.FILE_SAVE_ERROR, `Could not store file: ${fileName}.`);
   }
 };
 
@@ -48,7 +48,7 @@ const load = parseGraphQLSchema => {
     inputFields: {
       upload: {
         description: 'This is the new file to be created and uploaded.',
-        type: new GraphQLNonNull(GraphQLUpload),
+        type: new GraphQLNonNull(defaultGraphQLTypes.GraphQLUpload),
       },
     },
     outputFields: {

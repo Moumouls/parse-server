@@ -1215,7 +1215,7 @@ describe('Parse.User testing', () => {
       synchronizedAuthToken: null,
       synchronizedExpiration: null,
 
-      authenticate: function (options) {
+      authenticate(options) {
         if (this.shouldError) {
           options.error(this, 'An error occurred');
         } else if (this.shouldCancel) {
@@ -1224,7 +1224,7 @@ describe('Parse.User testing', () => {
           options.success(this, this.authData);
         }
       },
-      restoreAuthentication: function (authData) {
+      restoreAuthentication(authData) {
         if (!authData) {
           this.synchronizedUserId = null;
           this.synchronizedAuthToken = null;
@@ -1236,10 +1236,10 @@ describe('Parse.User testing', () => {
         this.synchronizedExpiration = authData.expiration_date;
         return true;
       },
-      getAuthType: function () {
+      getAuthType() {
         return 'myoauth';
       },
-      deauthenticate: function () {
+      deauthenticate() {
         this.loggedOut = true;
         this.restoreAuthentication(null);
       },

@@ -390,7 +390,7 @@ const checkIfUserHasProvidedConfiguredProvidersForLogin = (
   );
 };
 
-// Validate each authData step by step and return the provider responses
+// Validate each authData step-by-step and return the provider responses
 const handleAuthDataValidation = async (authData, req, foundUser) => {
   let user;
   if (foundUser) {

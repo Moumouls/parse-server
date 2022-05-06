@@ -541,7 +541,7 @@ export class UsersRouter extends ClassesRouter {
     }
 
     // Execute challenge step-by-step with consistent order for better error feedback
-    // and to avoid to trigger others challenges if one of them fail
+    // and to avoid to trigger others challenges if one of them fails
     const challenge = await Auth.reducePromise(
       Object.keys(challengeData).sort(),
       async (acc, provider) => {

@@ -65,12 +65,12 @@ const providers = {
 };
 
 function authDataValidator(provider, adapter, appIds, options) {
-  return async function (authData, req, user) {
+  return async function (authData, req, user, requestObject) {
     if (appIds && typeof adapter.validateAppId === 'function') {
       await Promise.resolve(adapter.validateAppId(appIds, authData, options, req, user));
     }
     if (typeof adapter.validateAuthData === 'function') {
-      return adapter.validateAuthData(authData, options, req, user);
+      return adapter.validateAuthData(authData, options, requestObject, req.config);
     } else if (
       typeof adapter.validateSetUp === 'function' &&
       typeof adapter.validateLogin === 'function' &&
@@ -88,20 +88,20 @@ function authDataValidator(provider, adapter, appIds, options) {
       if (isLoggedIn) {
         // User is updating their authData
         if (hasAuthDataConfigured) {
-          return adapter.validateUpdate(authData, options, req, user);
+          return adapter.validateUpdate(authData, options, requestObject, req.config);
         }
         // Let's setup if the user does not have the provider configured
-        return adapter.validateSetUp(authData, options, req, user);
+        return adapter.validateSetUp(authData, options, requestObject, req.config);
       }
 
       // Not logged in and authData is configured on the user
       if (hasAuthDataConfigured) {
-        return adapter.validateLogin(authData, options, req, user);
+        return adapter.validateLogin(authData, options, requestObject, req.config);
       }
 
       // User not logged in and the provider is not set up, for example when a new user
       // signs up or an existing user uses a new auth provider
-      return adapter.validateSetUp(authData, options, req, user);
+      return adapter.validateSetUp(authData, options, requestObject, req.config);
     }
     throw new Parse.Error(
       Parse.Error.OTHER_CAUSE,

@@ -1,5 +1,6 @@
 const Parse = require('parse/node');
 import { isDeepStrictEqual } from 'util';
+import { getRequestObject } from './triggers';
 
 const reducePromise = async (arr, fn, acc, index = 0) => {
   if (arr[index]) {
@@ -408,6 +409,14 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
     await user.fetch({ useMasterKey: true });
   }
 
+  const { originalObject, updatedObject } = req.buildParseObjects();
+  const requestObject = getRequestObject(
+    undefined,
+    req.auth,
+    updatedObject,
+    originalObject,
+    req.config
+  );
   // Perform validation as step-by-step pipeline for better error consistency
   // and also to avoid to trigger a provider (like OTP SMS) if another one fails
   return reducePromise(
@@ -425,11 +434,7 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
           'This authentication method is unsupported.'
         );
       }
-      const validationResult = await validator(
-        authData[provider],
-        { config: req.config, auth: req.auth },
-        user
-      );
+      const validationResult = await validator(authData[provider], req, user, requestObject);
       if (validationResult) {
         if (!Object.keys(validationResult).length) acc.authData[provider] = authData[provider];
 

@@ -2337,7 +2337,7 @@ describe('Auth Adapter features', () => {
     ).toBeRejectedWithError('this auth is already used');
   });
 
-  it('should pass authData, options, req, user to validateAuthData', async () => {
+  it('should pass authData, options, request, config to validateAuthData', async () => {
     spyOn(baseAdapter, 'validateAuthData').and.resolveTo({});
     await reconfigureServer({ auth: { baseAdapter } });
     const user = new Parse.User();
@@ -2353,11 +2353,10 @@ describe('Auth Adapter features', () => {
     const firstCall = baseAdapter.validateAuthData.calls.argsFor(0);
     expect(firstCall[0]).toEqual(payload);
     expect(firstCall[1]).toEqual(baseAdapter);
-    expect(firstCall[2].config).toBeDefined();
+    expect(firstCall[2].object).toBeDefined();
+    expect(firstCall[2].original).toBeUndefined();
     expect(firstCall[2].isChallenge).toBeUndefined();
-    expect(firstCall[2].config.headers).toBeDefined();
-    expect(firstCall[2].auth).toBeDefined();
-    expect(firstCall[3]).toBeUndefined();
+    expect(firstCall[3].headers).toBeDefined();
 
     await request({
       headers: headers,
@@ -2372,12 +2371,15 @@ describe('Auth Adapter features', () => {
     const secondCall = baseAdapter.validateAuthData.calls.argsFor(1);
     expect(secondCall[0]).toEqual(payload);
     expect(secondCall[1]).toEqual(baseAdapter);
-    expect(secondCall[2].config).toBeDefined();
+    expect(secondCall[2].original).toBeDefined();
+    expect(secondCall[2].original instanceof Parse.User).toBeTruthy();
+    expect(secondCall[2].original.id).toEqual(user.id);
+    expect(secondCall[2].object).toBeDefined();
+    expect(secondCall[2].object instanceof Parse.User).toBeTruthy();
+    expect(secondCall[2].object.id).toEqual(user.id);
     expect(secondCall[2].isChallenge).toBeUndefined();
-    expect(secondCall[2].auth).toBeDefined();
-    expect(secondCall[2].config.headers).toBeDefined();
-    expect(secondCall[3] instanceof Parse.User).toBeTruthy();
-    expect(secondCall[3].id).toEqual(user.id);
+    expect(secondCall[2].user).toBeUndefined();
+    expect(secondCall[3].headers).toBeDefined();
   });
 
   it('should trigger correctly validateSetUp', async () => {

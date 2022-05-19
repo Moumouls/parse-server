@@ -7,7 +7,7 @@ import ClassesRouter from './ClassesRouter';
 import rest from '../rest';
 import Auth from '../Auth';
 import passwordCrypto from '../password';
-import { maybeRunTrigger, Types as TriggerTypes } from '../triggers';
+import { maybeRunTrigger, Types as TriggerTypes, getRequestObject } from '../triggers';
 import { promiseEnsureIdempotency } from '../middlewares';
 import RestWrite from '../RestWrite';
 import { logger } from '../../lib/Adapters/Logger/WinstonLogger';
@@ -189,7 +189,20 @@ export class UsersRouter extends ClassesRouter {
     let authDataResponse;
     let validatedAuthData;
     if (authData) {
-      const res = await Auth.handleAuthDataValidation(authData, req, user);
+      const res = await Auth.handleAuthDataValidation(
+        authData,
+        new RestWrite(
+          req.config,
+          req.auth,
+          '_User',
+          { objectId: user.objectId },
+          req.body,
+          user,
+          req.info.clientSDK,
+          req.info.context
+        ),
+        user
+      );
       authDataResponse = res.authDataResponse;
       validatedAuthData = res.authData;
     }
@@ -497,6 +510,9 @@ export class UsersRouter extends ClassesRouter {
     if (typeof challengeData !== 'object')
       throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'challengeData should be an object.');
 
+    let request;
+    let parseUser;
+
     // Try to find user by authData
     if (authData) {
       if (typeof authData !== 'object') {
@@ -525,19 +541,26 @@ export class UsersRouter extends ClassesRouter {
         // Find the provider used to find the user
         const provider = Object.keys(authData).find(key => authData[key].id);
 
+        parseUser = Parse.User.fromJSON({ className: '_User', ...results[0] });
+        request = getRequestObject(undefined, req.auth, parseUser, parseUser, req.config);
+        request.isChallenge = true;
         // Validate authData used to identify the user to avoid brute-force attack on `id`
         const { validator } = req.config.authDataManager.getValidatorForProvider(provider);
-        await validator(
-          authData[provider],
-          { config: req.config, auth: req.auth, isChallenge: true },
-          Parse.User.fromJSON({ className: '_User', ...results[0] })
-        );
-        user = results[0];
+        await validator(authData[provider], request);
       } catch (e) {
         // Rewrite the error to avoid guess id attack
         logger.error(e);
         throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'User not found.');
       }
+    }
+
+    if (!parseUser) {
+      parseUser = user ? Parse.User.fromJSON({ className: '_User', ...user }) : undefined;
+    }
+
+    if (!request) {
+      request = getRequestObject(undefined, req.auth, parseUser, parseUser, req.config);
+      request.isChallenge = true;
     }
 
     // Execute challenge step-by-step with consistent order for better error feedback
@@ -555,8 +578,8 @@ export class UsersRouter extends ClassesRouter {
             challengeData[provider],
             authData && authData[provider],
             req.config.auth[provider],
-            req,
-            user ? Parse.User.fromJSON({ className: '_User', ...user }) : undefined
+            request,
+            req.config
           );
           acc[provider] = providerChallengeResponse || true;
           return acc;

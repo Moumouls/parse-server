@@ -166,31 +166,32 @@ const verifyLogin = ({ authentication, signedChallenge }, options = {}, config, 
   }
 };
 
-export const challenge = async (challengeData, authData, adapterConfig = {}, req) => {
+export const challenge = async (challengeData, authData, adapterConfig = {}, request, config) => {
   // Allow logged user to update/setUp webauthn
-  if (req.auth.user && req.auth.user.id) {
-    return registerOptions(req.auth.user, adapterConfig.options, req.config);
+  if (request.user && request.user.id) {
+    return registerOptions(request.user, adapterConfig.options, config);
   }
 
-  return loginOptions(req.config);
+  return loginOptions(config);
 };
 
-export const validateSetUp = async (authData, adapterConfig = {}, req) => {
-  if (!req.auth.user && !req.auth.isMaster)
+export const validateSetUp = async (authData, adapterConfig = {}, request, config) => {
+  if (!request.user && !request.master)
     throw new Parse.Error(
       Parse.Error.OTHER_CAUSE,
       'Webauthn can only be configured on an already logged in user.'
     );
-  return { save: await verifyRegister(authData, adapterConfig.options, req.config) };
+  return { save: await verifyRegister(authData, adapterConfig.options, config) };
 };
 
 export const validateUpdate = validateSetUp;
 
-export const validateLogin = async (authData, adapterConfig = {}, req, user) => {
-  if (!user) throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'User not found for webauthn login.');
+export const validateLogin = async (authData, adapterConfig = {}, request, config) => {
+  if (!request.original)
+    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'User not found for webauthn login.');
   // Will save updated counter of the credential
   // and avoid cloned/bugged authenticators
-  return { save: verifyLogin(authData, adapterConfig.options, req.config, user) };
+  return { save: verifyLogin(authData, adapterConfig.options, config, request.original) };
 };
 
 export const policy = 'solo';

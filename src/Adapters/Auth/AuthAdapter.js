@@ -1,53 +1,61 @@
 /*eslint no-unused-vars: "off"*/
+
+/**
+ * @interface ParseAuthResponse
+ * @property {Boolean} [doNotSave] If true, parse server will do not save provided authData.
+ * @property {Object} [response] If set, parse server will send the provided response to the client under authDataResponse
+ * @property {Object} [save] If set, parse server will save the object provided into this key, instead of client provided authData
+ */
+
+/**
+ * AuthPolicy
+ * default: can be combined with ONE additional auth provider if additional configured on user
+ * additional: could be only used with a default policy auth provider
+ * solo: Will ignore ALL additional providers if additional configured on user
+ * @typedef {"default" | "additional" | "solo"} AuthPolicy
+ */
+
 export class AuthAdapter {
   constructor() {
     /**
      * Usage policy
-     * default: can be combined with ONE additional auth provider if additional configured on user
-     * additional: could be only used with a default policy auth provider
-     * solo: Will ignore ALL additional providers if additional configured on user
+     * @type {AuthPolicy}
      */
     this.policy = 'default';
   }
   /**
-  @param appIds: the specified app ids in the configuration
-  @param authData: the client provided authData
-  @param options: additional options
-  @param req: RestWrite instance with config/auth/data
-  @returns a promise that resolves if the applicationId is valid
+   * @param appIds The specified app ids in the configuration
+   * @param {Object} authData The client provided authData
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {(Promise<undefined|void>|void|undefined)} resolves or returns if the applicationId is valid
    */
-  validateAppId(appIds, authData, options, req) {
+  validateAppId(appIds, authData, options, request) {
     return Promise.resolve({});
   }
 
   /**
    * Legacy usage, if provided it will be triggered when authData related to this provider is touched (signup/update/login)
    * otherwise you should implement validateSetup, validateLogin and validateUpdate
-  @param authData: the client provided authData
-  @param options: additional options
-  @param req: RestWrite instance with config/auth/data
-  @param user: Parse.User instance if Parse.User found
-  @returns a promise that resolves, the resolved value will be handled by the server like:
-  - resolve undefined|void|{} parse server will save authData
-  - resolve { doNotSave: boolean, response: Object} parse server will do not save provided authData and send response to the client under authDataResponse
-  - resolve { response: Object } parse server will save authData and send response to the client under authDataResponse
-  - resolve { response: Object, save: Object } parse server will save the object provided into `save` key and send response to the client under authDataResponse
+   * @param {Object} authData The client provided authData
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {Promise<ParseAuthResponse|void|undefined>}
    */
-  validateAuthData(authData, options, req, user) {
+  validateAuthData(authData, options, request, config) {
     return Promise.resolve({});
   }
 
   /**
    * Triggered when user provide for the first time this auth provider
-  @param authData: the client provided authData
-  @param options: additional options
-  @param req: RestWrite instance with config/auth/data
-  @param user: Parse.User instance if Parse.User found
-  @returns a promise that resolves, the resolved value will be handled by the server like:
-  - resolve undefined|void|{} parse server will save authData
-  - resolve { doNotSave: boolean, response: Object} parse server will do not save provided authData and send response to the client under authDataResponse
-  - resolve { response: Object } parse server will save authData and send response to the client under authDataResponse
-  - resolve { response: Object, save: Object } parse server will save the object provided into `save` key and send response to the client under authDataResponse
+   * could be a register or the user adding a new auth service
+   * @param {Object} authData The client provided authData
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {Promise<ParseAuthResponse|void|undefined>}
    */
   validateSetUp(authData, options, req, user) {
     return Promise.resolve({});
@@ -56,15 +64,11 @@ export class AuthAdapter {
   /**
    * Triggered when user provide authData related to this provider
    * he is not logged in and has already set this provider before
-  @param authData: the client provided authData
-  @param options: additional options
-  @param req: RestWrite instance with config/auth/data
-  @param user: Parse.User instance if Parse.User found
-  @returns a promise that resolves, the resolved value will be handled by the server like:
-  - resolve undefined|void|{} parse server will save authData
-  - resolve { doNotSave: boolean, response: Object} parse server will do not save provided authData and send response to the client under authDataResponse
-  - resolve { response: Object } parse server will save authData and send response to the client under authDataResponse
-  - resolve { response: Object, save: Object } parse server will save the object provided into `save` key and send response to the client under authDataResponse
+   * @param {Object} authData The client provided authData
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {Promise<ParseAuthResponse|void|undefined>}
    */
   validateLogin(authData, options, req, user) {
     return Promise.resolve({});
@@ -73,15 +77,11 @@ export class AuthAdapter {
   /**
    * Triggered when user provide authData related to this provider
    * he is logged in and has already set this provider before
-  @param authData: the client provided authData
-  @param options: additional options
-  @param req: RestWrite instance with config/auth/data
-  @param user: Parse.User instance if Parse.User found
-  @returns a promise that resolves, the resolved value will be handled by the server like:
-  - resolve undefined|void|{} parse server will save authData
-  - resolve { doNotSave: boolean, response: Object} parse server will do not save provided authData and send response to the client under authDataResponse
-  - resolve { response: Object } parse server will save authData and send response to the client under authDataResponse
-  - resolve { response: Object, save: Object } parse server will save the object provided into `save` key and send response to the client under authDataResponse
+   * @param {Object} authData The client provided authData
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {Promise<ParseAuthResponse|void|undefined>}
    */
   validateUpdate(authData, options, req, user) {
     return Promise.resolve({});
@@ -89,12 +89,12 @@ export class AuthAdapter {
 
   /**
    * Triggered in pre authentication process if needed (like webauthn, SMS OTP)
-   * @param challengeData: data provided by the client
-   * @param authData: auth data provided by the client, can be used for validation
-   * @param options: additional options
-   * @param req: RestWrite instance with config/auth/data
-   * @param user: Parse.User instance if Parse.User found
-   * @returns a promise that resolves, resolved value will be added to challenge response under challenge key
+   * @param {Object} challengeData Data provided by the client
+   * @param {(Object|undefined)} authData Auth data provided by the client, can be used for validation
+   * @param {Object} options Additional options
+   * @param {Parse.Cloud.TriggerRequest} request
+   * @param {Object} config
+   * @returns {Promise<Object>} A promise that resolves, resolved value will be added to challenge response under challenge key
    */
   challenge(challengeData, authData, options, req, user) {
     return Promise.resolve({});

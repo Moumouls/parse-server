@@ -397,7 +397,7 @@ describe('AuthenticationProviders', function () {
     const { validator } = authenticationHandler.getValidatorForProvider('customAuthentication');
     validateValidator(validator);
 
-    validator(validAuthData).then(
+    validator(validAuthData, {}, {}).then(
       () => {
         expect(authDataSpy).toHaveBeenCalled();
         // AppIds are not provided in the adapter, should not be called
@@ -419,10 +419,13 @@ describe('AuthenticationProviders', function () {
     validateAuthenticationHandler(authenticationHandler);
     const { validator } = authenticationHandler.getValidatorForProvider('customAuthentication');
     validateValidator(validator);
-
-    validator({
-      token: 'my-token',
-    }).then(
+    validator(
+      {
+        token: 'my-token',
+      },
+      {},
+      {}
+    ).then(
       () => {
         done();
       },
@@ -445,9 +448,13 @@ describe('AuthenticationProviders', function () {
     const { validator } = authenticationHandler.getValidatorForProvider('customAuthentication');
     validateValidator(validator);
 
-    validator({
-      token: 'valid-token',
-    }).then(
+    validator(
+      {
+        token: 'valid-token',
+      },
+      {},
+      {}
+    ).then(
       () => {
         done();
       },
@@ -2355,8 +2362,9 @@ describe('Auth Adapter features', () => {
     expect(firstCall[1]).toEqual(baseAdapter);
     expect(firstCall[2].object).toBeDefined();
     expect(firstCall[2].original).toBeUndefined();
+    expect(firstCall[2].user).toBeUndefined();
     expect(firstCall[2].isChallenge).toBeUndefined();
-    expect(firstCall[3].headers).toBeDefined();
+    expect(firstCall[3] instanceof Config).toBeTruthy();
 
     await request({
       headers: headers,
@@ -2379,7 +2387,7 @@ describe('Auth Adapter features', () => {
     expect(secondCall[2].object.id).toEqual(user.id);
     expect(secondCall[2].isChallenge).toBeUndefined();
     expect(secondCall[2].user).toBeUndefined();
-    expect(secondCall[3].headers).toBeDefined();
+    expect(secondCall[3] instanceof Config).toBeTruthy();
   });
 
   it('should trigger correctly validateSetUp', async () => {
@@ -2401,11 +2409,12 @@ describe('Auth Adapter features', () => {
     const call = modernAdapter.validateSetUp.calls.argsFor(0);
     expect(call[0]).toEqual({ id: 'modernAdapter' });
     expect(call[1]).toEqual(modernAdapter);
-    expect(call[2].config).toBeDefined();
     expect(call[2].isChallenge).toBeUndefined();
-    expect(call[2].auth).toBeDefined();
-    expect(call[2].config.headers).toBeDefined();
-    expect(call[3]).toBeUndefined();
+    expect(call[2].master).toBeDefined();
+    expect(call[2].object instanceof Parse.User).toBeTruthy();
+    expect(call[2].user).toBeUndefined();
+    expect(call[2].original).toBeUndefined();
+    expect(call[3] instanceof Config).toBeTruthy();
     expect(user.getSessionToken()).toBeDefined();
 
     await user.save(
@@ -2419,12 +2428,15 @@ describe('Auth Adapter features', () => {
     const call2 = modernAdapter2.validateSetUp.calls.argsFor(0);
     expect(call2[0]).toEqual({ id: 'modernAdapter2' });
     expect(call2[1]).toEqual(modernAdapter2);
-    expect(call2[2].config).toBeDefined();
     expect(call2[2].isChallenge).toBeUndefined();
-    expect(call2[2].auth).toBeDefined();
-    expect(call2[2].config.headers).toBeDefined();
-    expect(call2[3] instanceof Parse.User).toBeTruthy();
-    expect(call2[3].id).toEqual(user.id);
+    expect(call2[2].master).toBeDefined();
+    expect(call2[2].object instanceof Parse.User).toBeTruthy();
+    expect(call2[2].original instanceof Parse.User).toBeTruthy();
+    expect(call2[2].user instanceof Parse.User).toBeTruthy();
+    expect(call2[2].original.id).toEqual(call2[2].object.id);
+    expect(call2[2].user.id).toEqual(call2[2].object.id);
+    expect(call2[2].object.id).toEqual(user.id);
+    expect(call2[3] instanceof Config).toBeTruthy();
 
     const user2 = new Parse.User();
     user2.id = user.id;
@@ -2457,13 +2469,15 @@ describe('Auth Adapter features', () => {
     const call = modernAdapter.validateLogin.calls.argsFor(0);
     expect(call[0]).toEqual({ id: 'modernAdapter' });
     expect(call[1]).toEqual(modernAdapter);
-    expect(call[2].config).toBeDefined();
+    expect(call[2].object instanceof Parse.User).toBeTruthy();
+    expect(call[2].original instanceof Parse.User).toBeTruthy();
     expect(call[2].isChallenge).toBeUndefined();
-    expect(call[2].auth).toBeDefined();
-    expect(call[2].config.headers).toBeDefined();
-    expect(call[3] instanceof Parse.User).toBeTruthy();
-    expect(call[3].id).toEqual(user2.id);
-    expect(call[3].id).toEqual(user.id);
+    expect(call[2].master).toBeDefined();
+    expect(call[2].user).toBeUndefined();
+    expect(call[2].original.id).toEqual(user2.id);
+    expect(call[2].object.id).toEqual(user2.id);
+    expect(call[2].object.id).toEqual(user.id);
+    expect(call[3] instanceof Config).toBeTruthy();
     expect(user2.getSessionToken()).toBeDefined();
   });
 
@@ -2507,12 +2521,15 @@ describe('Auth Adapter features', () => {
     const call = modernAdapter.validateUpdate.calls.argsFor(0);
     expect(call[0]).toEqual({ id: 'modernAdapter2' });
     expect(call[1]).toEqual(modernAdapter);
-    expect(call[2].config).toBeDefined();
     expect(call[2].isChallenge).toBeUndefined();
-    expect(call[2].auth).toBeDefined();
-    expect(call[2].config.headers).toBeDefined();
-    expect(call[3] instanceof Parse.User).toBeTruthy();
-    expect(call[3].id).toEqual(user.id);
+    expect(call[2].master).toBeDefined();
+    expect(call[2].object instanceof Parse.User).toBeTruthy();
+    expect(call[2].user instanceof Parse.User).toBeTruthy();
+    expect(call[2].original instanceof Parse.User).toBeTruthy();
+    expect(call[2].object.id).toEqual(user.id);
+    expect(call[2].original.id).toEqual(user.id);
+    expect(call[2].user.id).toEqual(user.id);
+    expect(call[3] instanceof Config).toBeTruthy();
     expect(user.getSessionToken()).toBeDefined();
   });
 
@@ -2909,24 +2926,29 @@ describe('Auth Adapter features', () => {
     const firstCall = baseAdapter2.validateAuthData.calls.argsFor(0);
     expect(firstCall[0]).toEqual(payload);
     expect(firstCall[1]).toEqual(baseAdapter2);
-    expect(firstCall[2].config).toBeDefined();
     expect(firstCall[2].isChallenge).toBeUndefined();
-    expect(firstCall[2].auth).toBeDefined();
-    expect(firstCall[2].config.headers).toBeDefined();
-    expect(firstCall[3] instanceof Parse.User).toBeTruthy();
-    expect(firstCall[3].id).toEqual(user.id);
+    expect(firstCall[2].master).toBeDefined();
+    expect(firstCall[2].object instanceof Parse.User).toBeTruthy();
+    expect(firstCall[2].user instanceof Parse.User).toBeTruthy();
+    expect(firstCall[2].original instanceof Parse.User).toBeTruthy();
+    expect(firstCall[2].object.id).toEqual(user.id);
+    expect(firstCall[2].original.id).toEqual(user.id);
+    expect(firstCall[2].user.id).toEqual(user.id);
+    expect(firstCall[3] instanceof Config).toBeTruthy();
 
     await user.save({ authData: { baseAdapter2: payload } }, { useMasterKey: true });
 
     const secondCall = baseAdapter2.validateAuthData.calls.argsFor(1);
     expect(secondCall[0]).toEqual(payload);
     expect(secondCall[1]).toEqual(baseAdapter2);
-    expect(secondCall[2].config).toBeDefined();
     expect(secondCall[2].isChallenge).toBeUndefined();
-    expect(secondCall[2].auth).toBeDefined();
-    expect(secondCall[2].config.headers).toBeDefined();
-    expect(secondCall[3] instanceof Parse.User).toBeTruthy();
-    expect(secondCall[3].id).toEqual(user.id);
+    expect(secondCall[2].master).toEqual(true);
+    expect(secondCall[2].user).toBeUndefined();
+    expect(secondCall[2].object instanceof Parse.User).toBeTruthy();
+    expect(secondCall[2].original instanceof Parse.User).toBeTruthy();
+    expect(secondCall[2].object.id).toEqual(user.id);
+    expect(secondCall[2].original.id).toEqual(user.id);
+    expect(secondCall[3] instanceof Config).toBeTruthy();
   });
 
   it('should return challenge with no logged user', async () => {
@@ -2986,10 +3008,13 @@ describe('Auth Adapter features', () => {
     expect(challengeCall[0]).toEqual({ someData: true });
     expect(challengeCall[1]).toBeUndefined();
     expect(challengeCall[2]).toEqual(challengeAdapter);
-    expect(challengeCall[3].config).toBeDefined();
-    expect(challengeCall[3].auth).toBeDefined();
-    expect(challengeCall[3].config.headers).toBeDefined();
-    expect(challengeCall[4]).toBeUndefined();
+    expect(challengeCall[3].master).toBeDefined();
+    expect(challengeCall[3].headers).toBeDefined();
+    expect(challengeCall[3].object).toBeUndefined();
+    expect(challengeCall[3].original).toBeUndefined();
+    expect(challengeCall[3].user).toBeUndefined();
+    expect(challengeCall[3].isChallenge).toBeTruthy();
+    expect(challengeCall[4] instanceof Config).toBeTruthy();
   });
 
   it('should return empty challenge data response if challenged provider does not exists', async () => {
@@ -3080,11 +3105,14 @@ describe('Auth Adapter features', () => {
     expect(challengeCall[0]).toEqual({ someData: true });
     expect(challengeCall[1]).toEqual(undefined);
     expect(challengeCall[2]).toEqual(challengeAdapter);
-    expect(challengeCall[3].config).toBeDefined();
-    expect(challengeCall[3].auth).toBeDefined();
-    expect(challengeCall[3].config.headers).toBeDefined();
-    expect(challengeCall[4] instanceof Parse.User).toBeTruthy();
-    expect(challengeCall[4].id).toEqual(user.id);
+    expect(challengeCall[3].master).toBeDefined();
+    expect(challengeCall[3].isChallenge).toBeTruthy();
+    expect(challengeCall[3].user).toBeUndefined();
+    expect(challengeCall[3].object instanceof Parse.User).toBeTruthy();
+    expect(challengeCall[3].original instanceof Parse.User).toBeTruthy();
+    expect(challengeCall[3].object.id).toEqual(user.id);
+    expect(challengeCall[3].original.id).toEqual(user.id);
+    expect(challengeCall[4] instanceof Config).toBeTruthy();
   });
 
   it('should return challenge with authData created user', async () => {
@@ -3164,11 +3192,13 @@ describe('Auth Adapter features', () => {
     expect(challengeCall[0]).toEqual({ someData: true });
     expect(challengeCall[1]).toEqual({ id: 'challengeAdapter' });
     expect(challengeCall[2]).toEqual(challengeAdapter);
-    expect(challengeCall[3].config).toBeDefined();
-    expect(challengeCall[3].auth).toBeDefined();
-    expect(challengeCall[3].config.headers).toBeDefined();
-    expect(challengeCall[4] instanceof Parse.User).toBeTruthy();
-    expect(challengeCall[4].id).toEqual(user.id);
+    expect(challengeCall[3].master).toBeDefined();
+    expect(challengeCall[3].isChallenge).toBeTruthy();
+    expect(challengeCall[3].object instanceof Parse.User).toBeTruthy();
+    expect(challengeCall[3].original instanceof Parse.User).toBeTruthy();
+    expect(challengeCall[3].object.id).toEqual(user.id);
+    expect(challengeCall[3].original.id).toEqual(user.id);
+    expect(challengeCall[4] instanceof Config).toBeTruthy();
   });
 
   it('should validate provided authData and prevent guess id attack', async () => {
@@ -3219,11 +3249,12 @@ describe('Auth Adapter features', () => {
     expect(challengeAdapter.validateAuthData).toHaveBeenCalledTimes(1);
     expect(validateCall[0]).toEqual({ id: 'challengeAdapter' });
     expect(validateCall[1]).toEqual(challengeAdapter);
-    expect(validateCall[2].config).toBeDefined();
     expect(validateCall[2].isChallenge).toBeTruthy();
-    expect(validateCall[2].auth).toBeDefined();
-    expect(validateCall[2].config.headers).toBeDefined();
-    expect(validateCall[3] instanceof Parse.User).toBeTruthy();
-    expect(validateCall[3].id).toEqual(user.id);
+    expect(validateCall[2].master).toBeDefined();
+    expect(validateCall[2].object instanceof Parse.User).toBeTruthy();
+    expect(validateCall[2].original instanceof Parse.User).toBeTruthy();
+    expect(validateCall[2].object.id).toEqual(user.id);
+    expect(validateCall[2].original.id).toEqual(user.id);
+    expect(validateCall[3] instanceof Config).toBeTruthy();
   });
 });

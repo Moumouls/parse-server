@@ -414,7 +414,7 @@ const handleAuthDataValidation = async (authData, req, foundUser) => {
     undefined,
     req.auth,
     updatedObject,
-    originalObject,
+    originalObject || user,
     req.config
   );
   // Perform validation as step-by-step pipeline for better error consistency

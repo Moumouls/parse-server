@@ -327,7 +327,6 @@ describe('Webauthn', () => {
         },
       })
     ).toBeRejectedWithError('Invalid webauthn authentication');
-
     await user2.save({
       authData: {
         webauthn: {

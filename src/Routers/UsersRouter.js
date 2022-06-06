@@ -546,7 +546,7 @@ export class UsersRouter extends ClassesRouter {
         request.isChallenge = true;
         // Validate authData used to identify the user to avoid brute-force attack on `id`
         const { validator } = req.config.authDataManager.getValidatorForProvider(provider);
-        await validator(authData[provider], request);
+        await validator(authData[provider], req, parseUser, request);
       } catch (e) {
         // Rewrite the error to avoid guess id attack
         logger.error(e);

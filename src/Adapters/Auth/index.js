@@ -67,7 +67,9 @@ const providers = {
 function authDataValidator(provider, adapter, appIds, options) {
   return async function (authData, req, user, requestObject) {
     if (appIds && typeof adapter.validateAppId === 'function') {
-      await Promise.resolve(adapter.validateAppId(appIds, authData, options, req, user));
+      await Promise.resolve(
+        adapter.validateAppId(appIds, authData, options, requestObject, req.config)
+      );
     }
     if (typeof adapter.validateAuthData === 'function') {
       return adapter.validateAuthData(authData, options, requestObject, req.config);

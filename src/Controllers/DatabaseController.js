@@ -368,12 +368,19 @@ const relationSchema = {
   fields: { relatedId: { type: 'String' }, owningId: { type: 'String' } },
 };
 
-const maybeTransformUsernameAndEmailToLowerCase = (object, className, options) => {
-  if (className === '_User' && options.forceEmailAndUsernameToLowerCase) {
-    const toLowerCaseFields = ['email', 'username'];
-    toLowerCaseFields.forEach(key => {
-      if (typeof object[key] === 'string') object[key] = object[key].toLowerCase();
-    });
+const convertEmailToLowercase = (object, className, options) => {
+  if (className === '_User' && options.convertEmailToLowercase) {
+    if (typeof object['email'] === 'string') {
+      object['email'] = object['email'].toLowerCase();
+    }
+  }
+};
+
+const convertUsernameToLowercase = (object, className, options) => {
+  if (className === '_User' && options.convertUsernameToLowercase) {
+    if (typeof object['username'] === 'string') {
+      object['username'] = object['username'].toLowerCase();
+    }
   }
 };
 
@@ -582,7 +589,8 @@ class DatabaseController {
                 }
               }
               update = transformObjectACL(update);
-              maybeTransformUsernameAndEmailToLowerCase(update, className, this.options);
+              convertEmailToLowercase(update, className, this.options);
+              convertUsernameToLowercase(update, className, this.options);
               transformAuthData(className, update, schema);
               if (validateOnly) {
                 return this.adapter.find(className, schema, query, {}).then(result => {
@@ -831,7 +839,9 @@ class DatabaseController {
     // Make a copy of the object, so we don't mutate the incoming data.
     const originalObject = object;
     object = transformObjectACL(object);
-    maybeTransformUsernameAndEmailToLowerCase(object, className, this.options);
+
+    convertEmailToLowercase(object, className, this.options);
+    convertUsernameToLowercase(object, className, this.options);
     object.createdAt = { iso: object.createdAt, __type: 'Date' };
     object.updatedAt = { iso: object.updatedAt, __type: 'Date' };
 
@@ -1177,6 +1187,7 @@ class DatabaseController {
       hint,
       caseInsensitive = false,
       explain,
+      comment,
     }: any = {},
     auth: any = {},
     validSchemaController: SchemaController.SchemaController
@@ -1224,8 +1235,9 @@ class DatabaseController {
             keys,
             readPreference,
             hint,
-            caseInsensitive: this.options.disableCaseInsensitivity ? false : caseInsensitive,
+            caseInsensitive: this.options.enableCollationCaseComparison ? false : caseInsensitive,
             explain,
+            comment,
           };
           Object.keys(sort).forEach(fieldName => {
             if (fieldName.match(/^authData\.([a-zA-Z0-9_]+)\.id$/)) {
@@ -1295,7 +1307,8 @@ class DatabaseController {
                     query,
                     readPreference,
                     undefined,
-                    hint
+                    hint,
+                    comment
                   );
                 }
               } else if (distinct) {
@@ -1314,7 +1327,8 @@ class DatabaseController {
                     pipeline,
                     readPreference,
                     hint,
-                    explain
+                    explain,
+                    comment
                   );
                 }
               } else if (explain) {
@@ -1728,7 +1742,7 @@ class DatabaseController {
       throw error;
     });
 
-    if (!this.options.disableCaseInsensitivity) {
+    if (!this.options.enableCollationCaseComparison) {
       await this.adapter
         .ensureIndex('_User', requiredUserFields, ['username'], 'case_insensitive_username', true)
         .catch(error => {

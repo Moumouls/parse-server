@@ -33,6 +33,9 @@ describe('middlewares', () => {
   });
 
   it('should use _ContentType if provided', done => {
+    AppCachePut(fakeReq.body._ApplicationId, {
+      masterKeyIps: ['127.0.0.1'],
+    });
     expect(fakeReq.headers['content-type']).toEqual(undefined);
     const contentType = 'image/jpeg';
     fakeReq.body._ContentType = contentType;
@@ -146,42 +149,49 @@ describe('middlewares', () => {
 
   it('should not succeed and log if the ip does not belong to masterKeyIps list', async () => {
     const logger = require('../lib/logger').logger;
-    spyOn(logger, 'error').and.callFake(() => {});
+    spyOn(logger, 'error').and.callFake(() => { });
     AppCachePut(fakeReq.body._ApplicationId, {
       masterKey: 'masterKey',
       masterKeyIps: ['10.0.0.1'],
     });
     fakeReq.ip = '127.0.0.1';
     fakeReq.headers['x-parse-master-key'] = 'masterKey';
-    await new Promise(resolve => middlewares.handleParseHeaders(fakeReq, fakeRes, resolve));
-    expect(fakeReq.auth.isMaster).toBe(false);
+
+    let error;
+
+    try {
+      await new Promise(resolve => middlewares.handleParseHeaders(fakeReq, fakeRes, resolve));
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeDefined();
+    expect(error.message).toEqual(`unauthorized`);
     expect(logger.error).toHaveBeenCalledWith(
       `Request using master key rejected as the request IP address '127.0.0.1' is not set in Parse Server option 'masterKeyIps'.`
     );
   });
 
-  it('should not succeed if the ip does not belong to masterKeyIps list', async () => {
-    AppCachePut(fakeReq.body._ApplicationId, {
-      masterKey: 'masterKey',
-      masterKeyIps: ['10.0.0.1'],
-    });
-    fakeReq.ip = '127.0.0.1';
-    fakeReq.headers['x-parse-master-key'] = 'masterKey';
-    await new Promise(resolve => middlewares.handleParseHeaders(fakeReq, fakeRes, resolve));
-    expect(fakeReq.auth.isMaster).toBe(false);
-  });
-
-  it('should not succeed if the ip does not belong to maintenanceKeyIps list', async () => {
+  it('should not succeed and log if the ip does not belong to maintenanceKeyIps list', async () => {
     const logger = require('../lib/logger').logger;
-    spyOn(logger, 'error').and.callFake(() => {});
+    spyOn(logger, 'error').and.callFake(() => { });
     AppCachePut(fakeReq.body._ApplicationId, {
       maintenanceKey: 'masterKey',
       maintenanceKeyIps: ['10.0.0.0', '10.0.0.1'],
     });
     fakeReq.ip = '10.0.0.2';
     fakeReq.headers['x-parse-maintenance-key'] = 'masterKey';
-    await new Promise(resolve => middlewares.handleParseHeaders(fakeReq, fakeRes, resolve));
-    expect(fakeReq.auth.isMaintenance).toBe(false);
+
+    let error;
+
+    try {
+      await new Promise(resolve => middlewares.handleParseHeaders(fakeReq, fakeRes, resolve));
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeDefined();
+    expect(error.message).toEqual(`unauthorized`);
     expect(logger.error).toHaveBeenCalledWith(
       `Request using maintenance key rejected as the request IP address '10.0.0.2' is not set in Parse Server option 'maintenanceKeyIps'.`
     );
@@ -222,7 +232,7 @@ describe('middlewares', () => {
       },
     };
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(Object.keys(headers).length).toBe(4);
     expect(headers['Access-Control-Expose-Headers']).toBe(
       'X-Parse-Job-Status-Id, X-Parse-Push-Status-Id'
@@ -240,13 +250,13 @@ describe('middlewares', () => {
       },
     };
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Headers']).toContain(middlewares.DEFAULT_ALLOWED_HEADERS);
 
     AppCachePut(fakeReq.body._ApplicationId, {
       allowHeaders: [],
     });
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Headers']).toContain(middlewares.DEFAULT_ALLOWED_HEADERS);
   });
 
@@ -261,7 +271,7 @@ describe('middlewares', () => {
       },
     };
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Headers']).toContain('Header-1, Header-2');
     expect(headers['Access-Control-Allow-Headers']).toContain(middlewares.DEFAULT_ALLOWED_HEADERS);
   });
@@ -277,7 +287,7 @@ describe('middlewares', () => {
       },
     };
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('*');
   });
 
@@ -292,7 +302,7 @@ describe('middlewares', () => {
       },
     };
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('https://parseplatform.org/');
   });
 
@@ -309,19 +319,19 @@ describe('middlewares', () => {
     const allowCrossDomain = middlewares.allowCrossDomain(fakeReq.body._ApplicationId);
     // Test with the first domain
     fakeReq.headers.origin = 'https://a.com';
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('https://a.com');
     // Test with the second domain
     fakeReq.headers.origin = 'https://b.com';
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('https://b.com');
     // Test with the third domain
     fakeReq.headers.origin = 'https://c.com';
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('https://c.com');
     // Test with an unauthorized domain
     fakeReq.headers.origin = 'https://unauthorized.com';
-    allowCrossDomain(fakeReq, res, () => {});
+    allowCrossDomain(fakeReq, res, () => { });
     expect(headers['Access-Control-Allow-Origin']).toEqual('https://a.com');
   });
 
@@ -358,6 +368,7 @@ describe('middlewares', () => {
       expect(middlewares.checkIp(ip, ['::/0'], new Map())).toBe(true);
       expect(middlewares.checkIp(ip, ['::'], new Map())).toBe(true);
       expect(middlewares.checkIp(ip, ['0.0.0.0'], new Map())).toBe(false);
+      expect(middlewares.checkIp(ip, ['0.0.0.0/0'], new Map())).toBe(false);
       expect(middlewares.checkIp(ip, ['123.123.123.123'], new Map())).toBe(false);
     });
 
@@ -368,6 +379,7 @@ describe('middlewares', () => {
     expect(middlewares.checkIp(ipv4, ['::'], new Map())).toBe(false);
     expect(middlewares.checkIp(ipv4, ['::/0'], new Map())).toBe(false);
     expect(middlewares.checkIp(ipv4, ['0.0.0.0'], new Map())).toBe(true);
+    expect(middlewares.checkIp(ipv4, ['0.0.0.0/0'], new Map())).toBe(true);
     expect(middlewares.checkIp(ipv4, ['123.123.123.123'], new Map())).toBe(false);
     expect(middlewares.checkIp(ipv4, [ipv4], new Map())).toBe(true);
     expect(middlewares.checkIp(ipv4, ['192.168.0.0/24'], new Map())).toBe(true);

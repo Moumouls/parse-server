@@ -1,15 +1,13 @@
 import { GraphQLNonNull } from 'graphql';
 import { request } from 'http';
-import { extension } from 'mime-types';
+import { getExtension } from 'mime';
 import { mutationWithClientMutationId } from 'graphql-relay';
 import Parse from 'parse/node';
 import * as defaultGraphQLTypes from './defaultGraphQLTypes';
 import logger from '../../logger';
 
-// Handle graphql file upload and proxy the file upload
-// to the graphql server url specified in the config
-// We do not call directly createFile from the Parse Server
-// to leverage the standard file upload mechanism
+// Handle GraphQL file upload and proxy file upload to GraphQL server url specified in config;
+// `createFile` is not directly called by Parse Server to leverage standard file upload mechanism
 const handleUpload = async (upload, config) => {
   const { createReadStream, filename, mimetype } = await upload;
   const headers = { ...config.headers };
@@ -20,7 +18,7 @@ const handleUpload = async (upload, config) => {
   delete headers['content-length'];
   const stream = createReadStream();
   try {
-    const ext = extension(mimetype);
+    const ext = getExtension(mimetype);
     const fullFileName = filename.endsWith(`.${ext}`) ? filename : `${filename}.${ext}`;
     const serverUrl = new URL(config.serverURL);
     const fileInfo = await new Promise((resolve, reject) => {

@@ -2668,7 +2668,7 @@ function literalizeRegexPart(s: string) {
     .replace(/([^\\])(\\Q)/, '$1')
     .replace(/^\\E/, '')
     .replace(/^\\Q/, '')
-    .replace(/([^'])'/, `$1''`)
+    .replace(/([^'])'/g, `$1''`)
     .replace(/^'([^'])/, `''$1`);
 }
 

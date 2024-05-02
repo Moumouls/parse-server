@@ -148,8 +148,8 @@ class ParseGraphQLServer {
                 ...options,
                 headers: {
                     ...options.headers,
-                    'X-Parse-Application-Id': "${JSON.stringify(this.parseServer.config.appId)}",
-                    'X-Parse-Master-Key': "${JSON.stringify(this.parseServer.config.masterKey)}",
+                    'X-Parse-Application-Id': ${JSON.stringify(this.parseServer.config.appId)},
+                    'X-Parse-Master-Key': ${JSON.stringify(this.parseServer.config.masterKey)},
                 },
               })
             },

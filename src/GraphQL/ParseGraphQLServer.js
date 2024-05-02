@@ -132,7 +132,7 @@ class ParseGraphQLServer {
 
     app.get(
       this.config.playgroundPath ||
-        requiredParameter('You must provide a config.playgroundPath to applyPlayground!'),
+      requiredParameter('You must provide a config.playgroundPath to applyPlayground!'),
       (_req, res) => {
         res.setHeader('Content-Type', 'text/html');
         res.write(
@@ -142,7 +142,7 @@ class ParseGraphQLServer {
            new window.EmbeddedSandbox({
              target: "#sandbox",
              endpointIsEditable: false,
-             initialEndpoint: "${JSON.stringify(this.config.graphQLPath)}",
+             initialEndpoint: ${JSON.stringify(this.config.graphQLPath)},
              handleRequest: (endpointUrl, options) => {
               return fetch(endpointUrl, {
                 ...options,

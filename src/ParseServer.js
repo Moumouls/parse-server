@@ -106,7 +106,7 @@ class ParseServer {
       return result;
     }
 
-    const diff = validateKeyNames(options, optionsBlueprint);
+    const diff = validateKeyNames(options, optionsBlueprint).filter((item) => item.indexOf('databaseOptions.') === -1);
     if (diff.length > 0) {
       const logger = logging.logger;
       logger.error(`Invalid Option Keys Found: ${diff.join(', ')}`);
@@ -494,7 +494,7 @@ class ParseServer {
       if (!isValidHttpUrl(url)) {
         console.warn(
           `\nWARNING, Unable to connect to '${Parse.serverURL}' as the URL is invalid.` +
-            ` Cloud code and push notifications may be unavailable!\n`
+          ` Cloud code and push notifications may be unavailable!\n`
         );
         return;
       }
@@ -510,7 +510,7 @@ class ParseServer {
         /* eslint-disable no-console */
         console.warn(
           `\nWARNING, Unable to connect to '${Parse.serverURL}'.` +
-            ` Cloud code and push notifications may be unavailable!\n`
+          ` Cloud code and push notifications may be unavailable!\n`
         );
         /* eslint-enable no-console */
         return;

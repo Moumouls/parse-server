@@ -62,6 +62,19 @@ describe('Auth Adapter features', () => {
     validateLogin: () => Promise.resolve(),
   };
 
+  const modernAdapter3 = {
+    validateAppId: () => Promise.resolve(),
+    validateSetUp: () => Promise.resolve(),
+    validateUpdate: () => Promise.resolve(),
+    validateLogin: () => Promise.resolve(),
+    validateOptions: () => Promise.resolve(),
+    afterFind() {
+      return {
+        foo: 'bar',
+      };
+    },
+  };
+
   const wrongAdapter = {
     validateAppId: () => Promise.resolve(),
   };
@@ -333,6 +346,44 @@ describe('Auth Adapter features', () => {
     expect(user.getSessionToken()).toBeDefined();
   });
 
+  it('should strip out authData if required', async () => {
+    const spy = spyOn(modernAdapter3, 'validateOptions').and.callThrough();
+    const afterSpy = spyOn(modernAdapter3, 'afterFind').and.callThrough();
+    await reconfigureServer({ auth: { modernAdapter3 } });
+    const user = new Parse.User();
+    await user.save({ authData: { modernAdapter3: { id: 'modernAdapter3Data' } } });
+    await user.fetch({ sessionToken: user.getSessionToken() });
+    const authData = user.get('authData').modernAdapter3;
+    expect(authData).toEqual({ foo: 'bar' });
+    for (const call of afterSpy.calls.all()) {
+      const args = call.args[0];
+      if (args.user) {
+        user._objCount = args.user._objCount;
+        break;
+      }
+    }
+    expect(afterSpy).toHaveBeenCalledWith(
+      { ip: '127.0.0.1', user, master: false },
+      { id: 'modernAdapter3Data' },
+      undefined
+    );
+    expect(spy).toHaveBeenCalled();
+  });
+
+  it('should throw if policy does not match one of default/solo/additional', async () => {
+    const adapterWithBadPolicy = {
+      validateAppId: () => Promise.resolve(),
+      validateAuthData: () => Promise.resolve(),
+      policy: 'bad',
+    };
+    await reconfigureServer({ auth: { adapterWithBadPolicy } });
+    const user = new Parse.User();
+    await expectAsync(
+      user.save({ authData: { adapterWithBadPolicy: { id: 'adapterWithBadPolicy' } } })
+    ).toBeRejectedWithError(
+      'AuthAdapter policy is not configured correctly. The value must be either "solo", "additional", "default" or undefined (will be handled as "default")'
+    );
+  })
   it('should throw if no triggers found', async () => {
     await reconfigureServer({ auth: { wrongAdapter } });
     const user = new Parse.User();

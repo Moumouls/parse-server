@@ -109,7 +109,7 @@ class ParseServer {
     const diff = validateKeyNames(options, optionsBlueprint).filter((item) => item.indexOf('databaseOptions.') === -1);
     if (diff.length > 0) {
       const logger = logging.logger;
-      logger.error(`Invalid Option Keys Found: ${diff.join(', ')}`);
+      logger.error(`Invalid key(s) found in Parse Server configuration: ${diff.join(', ')}`);
     }
 
     // Set option defaults
@@ -160,6 +160,7 @@ class ParseServer {
           throw e;
         }
       }
+      const pushController = await controllers.getPushController(this.config);
       await hooksController.load();
       const startupPromises = [];
       if (schema) {
@@ -196,6 +197,7 @@ class ParseServer {
         new CheckRunner(security).run();
       }
       this.config.state = 'ok';
+      this.config = { ...this.config, ...pushController };
       Config.put(this.config);
       return this;
     } catch (error) {

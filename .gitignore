@@ -59,3 +59,5 @@ node_modules
 
 # Redis Dump
 dump.rdb
+
+_mongodb_runner

@@ -31,7 +31,7 @@
     "commander": "12.1.0",
     "cors": "2.8.5",
     "deepcopy": "2.1.0",
-    "express": "4.21.0",
+    "express": "4.21.1",
     "express-rate-limit": "7.4.1",
     "follow-redirects": "1.15.9",
     "graphql": "16.9.0",
@@ -69,10 +69,10 @@
     "@actions/core": "1.11.1",
     "@apollo/client": "3.11.8",
     "@babel/cli": "7.24.8",
-    "@babel/core": "7.24.7",
+    "@babel/core": "7.26.0",
     "@babel/plugin-proposal-object-rest-spread": "7.20.7",
     "@babel/plugin-transform-flow-strip-types": "7.25.9",
-    "@babel/preset-env": "7.24.8",
+    "@babel/preset-env": "7.26.0",
     "@saithodev/semantic-release-backmerge": "4.0.1",
     "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "13.0.0",
@@ -106,7 +106,7 @@
     "nyc": "15.1.0",
     "prettier": "2.0.5",
     "semantic-release": "24.0.0",
-    "yaml": "2.5.1"
+    "yaml": "2.6.0"
   },
   "scripts": {
     "ci:check": "node ./ci/ciCheck.js",
@@ -145,7 +145,7 @@
     "parse-server": "bin/parse-server"
   },
   "optionalDependencies": {
-    "@node-rs/bcrypt": "1.10.4"
+    "@node-rs/bcrypt": "1.10.5"
   },
   "collective": {
     "type": "opencollective",

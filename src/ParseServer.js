@@ -88,7 +88,7 @@ class ParseServer {
         if (!Object.prototype.hasOwnProperty.call(ref, key)) {
           result.push(prefix + key);
         } else {
-          if (ref[key] === '') continue;
+          if (ref[key] === '') { continue; }
           let res = [];
           if (Array.isArray(original[key]) && Array.isArray(ref[key])) {
             const type = ref[key][0];
@@ -162,7 +162,7 @@ class ParseServer {
       }
       const pushController = await controllers.getPushController(this.config);
       await hooksController.load();
-      const startupPromises = [];
+      const startupPromises = [this.config.loadMasterKey?.()];
       if (schema) {
         startupPromises.push(new DefinedSchemas(schema, this.config).execute());
       }
@@ -201,6 +201,7 @@ class ParseServer {
       Config.put(this.config);
       return this;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error);
       this.config.state = 'error';
       throw error;
@@ -382,6 +383,7 @@ class ParseServer {
     try {
       await this.start();
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.error('Error on ParseServer.startApp: ', e);
       throw e;
     }
@@ -494,6 +496,7 @@ class ParseServer {
       };
       const url = `${Parse.serverURL.replace(/\/$/, '')}/health`;
       if (!isValidHttpUrl(url)) {
+        // eslint-disable-next-line no-console
         console.warn(
           `\nWARNING, Unable to connect to '${Parse.serverURL}' as the URL is invalid.` +
           ` Cloud code and push notifications may be unavailable!\n`
@@ -555,6 +558,7 @@ function injectDefaults(options: ParseServerOptions) {
   if (options.appId) {
     const regex = /[!#$%'()*+&/:;=?@[\]{}^,|<>]/g;
     if (options.appId.match(regex)) {
+      // eslint-disable-next-line no-console
       console.warn(
         `\nWARNING, appId that contains special characters can cause issues while using with urls.\n`
       );

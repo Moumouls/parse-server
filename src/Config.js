@@ -139,7 +139,7 @@ export class Config {
   }
 
   static validateCustomPages(customPages) {
-    if (!customPages) return;
+    if (!customPages) { return; }
 
     if (Object.prototype.toString.call(customPages) !== '[object Object]') {
       throw Error('Parse Server option customPages must be an object.');
@@ -209,7 +209,7 @@ export class Config {
   }
 
   static validateSchemaOptions(schema: SchemaOptions) {
-    if (!schema) return;
+    if (!schema) { return; }
     if (Object.prototype.toString.call(schema) !== '[object Object]') {
       throw 'Parse Server option schema must be an object.';
     }
@@ -723,6 +723,28 @@ export class Config {
   get verifyEmailURL() {
     return `${this.publicServerURL}/${this.pagesEndpoint}/${this.applicationId}/verify_email`;
   }
+
+  async loadMasterKey() {
+    if (typeof this.masterKey === 'function') {
+      const ttlIsEmpty = !this.masterKeyTtl;
+      const isExpired = this.masterKeyCache?.expiresAt && this.masterKeyCache.expiresAt < new Date();
+
+      if ((!isExpired || ttlIsEmpty) && this.masterKeyCache?.masterKey) {
+        return this.masterKeyCache.masterKey;
+      }
+
+      const masterKey = await this.masterKey();
+
+      const expiresAt = this.masterKeyTtl ? new Date(Date.now() + 1000 * this.masterKeyTtl) : null
+      this.masterKeyCache = { masterKey, expiresAt };
+      Config.put(this);
+
+      return this.masterKeyCache.masterKey;
+    }
+
+    return this.masterKey;
+  }
+
 
   // TODO: Remove this function once PagesRouter replaces the PublicAPIRouter;
   // the (default) endpoint has to be defined in PagesRouter only.

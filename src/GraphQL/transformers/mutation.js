@@ -83,7 +83,7 @@ const transformTypes = async (
       }
     });
     await Promise.all(promises);
-    if (fields.ACL) fields.ACL = transformers.ACL(fields.ACL);
+    if (fields.ACL) { fields.ACL = transformers.ACL(fields.ACL); }
   }
   return fields;
 };
@@ -149,10 +149,10 @@ const transformers = {
     { config, auth, info }
   ) => {
     if (Object.keys(value).length === 0)
-      throw new Parse.Error(
-        Parse.Error.INVALID_POINTER,
-        `You need to provide at least one operation on the relation mutation of field ${field}`
-      );
+    { throw new Parse.Error(
+      Parse.Error.INVALID_POINTER,
+      `You need to provide at least one operation on the relation mutation of field ${field}`
+    ); }
 
     const op = {
       __op: 'Batch',
@@ -181,7 +181,7 @@ const transformers = {
     }
 
     if (value.add || nestedObjectsToAdd.length > 0) {
-      if (!value.add) value.add = [];
+      if (!value.add) { value.add = []; }
       value.add = value.add.map(input => {
         const globalIdObject = fromGlobalId(input);
         if (globalIdObject.type === targetClass) {
@@ -226,10 +226,10 @@ const transformers = {
     { config, auth, info }
   ) => {
     if (Object.keys(value).length > 1 || Object.keys(value).length === 0)
-      throw new Parse.Error(
-        Parse.Error.INVALID_POINTER,
-        `You need to provide link OR createLink on the pointer mutation of field ${field}`
-      );
+    { throw new Parse.Error(
+      Parse.Error.INVALID_POINTER,
+      `You need to provide link OR createLink on the pointer mutation of field ${field}`
+    ); }
 
     let nestedObjectToAdd;
     if (value.createAndLink) {

@@ -29,7 +29,7 @@ export class RedisCacheAdapter {
     if (this.client.isOpen) {
       return;
     }
-    return this.client.connect();
+    return await this.client.connect();
   }
 
   async handleShutdown() {

@@ -233,6 +233,13 @@ module.exports.ParseServerOptions = {
     action: parsers.booleanParser,
     default: false,
   },
+  enableInsecureAuthAdapters: {
+    env: 'PARSE_SERVER_ENABLE_INSECURE_AUTH_ADAPTERS',
+    help:
+      'Enable (or disable) insecure auth adapters, defaults to true. Insecure auth adapters are deprecated and it is recommended to disable them.',
+    action: parsers.booleanParser,
+    default: true,
+  },
   encodeParseObjectInCloudFunction: {
     env: 'PARSE_SERVER_ENCODE_PARSE_OBJECT_IN_CLOUD_FUNCTION',
     help:
@@ -284,6 +291,12 @@ module.exports.ParseServerOptions = {
     env: 'PARSE_SERVER_GRAPHQL_PATH',
     help: 'Mount path for the GraphQL endpoint, defaults to /graphql',
     default: '/graphql',
+  },
+  graphQLPublicIntrospection: {
+    env: 'PARSE_SERVER_GRAPHQL_PUBLIC_INTROSPECTION',
+    help: 'Enable public introspection for the GraphQL endpoint, defaults to false',
+    action: parsers.booleanParser,
+    default: false,
   },
   graphQLSchema: {
     env: 'PARSE_SERVER_GRAPH_QLSCHEMA',

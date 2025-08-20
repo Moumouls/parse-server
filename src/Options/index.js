@@ -161,6 +161,10 @@ export interface ParseServerOptions {
   /* Configuration for your authentication providers, as stringified JSON. See http://docs.parseplatform.org/parse-server/guide/#oauth-and-3rd-party-authentication
   :ENV: PARSE_SERVER_AUTH_PROVIDERS */
   auth: ?{ [string]: AuthAdapter };
+  /* Enable (or disable) insecure auth adapters, defaults to true. Insecure auth adapters are deprecated and it is recommended to disable them.
+  :ENV: PARSE_SERVER_ENABLE_INSECURE_AUTH_ADAPTERS
+  :DEFAULT: true */
+  enableInsecureAuthAdapters: ?boolean;
   /* Max file size for uploads, defaults to 20mb
   :DEFAULT: 20mb */
   maxUploadSize: ?string;
@@ -302,6 +306,10 @@ export interface ParseServerOptions {
   :ENV: PARSE_SERVER_GRAPHQL_PATH
   :DEFAULT: /graphql */
   graphQLPath: ?string;
+  /* Enable public introspection for the GraphQL endpoint, defaults to false
+  :ENV: PARSE_SERVER_GRAPHQL_PUBLIC_INTROSPECTION
+  :DEFAULT: false */
+  graphQLPublicIntrospection: ?boolean;
   /* Mounts the GraphQL Playground - never use this option in production
   :ENV: PARSE_SERVER_MOUNT_PLAYGROUND
   :DEFAULT: false */

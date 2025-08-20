@@ -1,5 +1,7 @@
 const { ApolloClient, gql, InMemoryCache } = require('@apollo/client/core');
+const createUploadLink = (...args) => import('apollo-upload-client/createUploadLink.mjs').then(({ default: fn }) => fn(...args));
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
 describe('requestContextMiddleware', () => {
   const requestContextMiddleware = (req, res, next) => {
     req.config.aCustomController = 'aCustomController';
@@ -30,14 +32,18 @@ describe('requestContextMiddleware', () => {
       mountGraphQL: true,
       graphQLPath: '/graphql',
     });
-    const client = new ApolloClient({
+    const httpLink = await createUploadLink({
       uri: 'http://localhost:8378/graphql',
-      cache: new InMemoryCache(),
       fetch,
       headers: {
         'X-Parse-Application-Id': 'test',
         'X-Parse-Master-Key': 'test',
       },
+    });
+
+    const client = new ApolloClient({
+      cache: new InMemoryCache(),
+      link: httpLink,
     });
 
     await client.mutate({

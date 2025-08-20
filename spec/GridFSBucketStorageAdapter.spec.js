@@ -421,13 +421,6 @@ describe_only_db('mongo')('GridFSBucket', () => {
     expect(gfsResult.toString('utf8')).toBe(twoMegabytesFile);
   });
 
-    const gfsAdapter = new GridFSBucketAdapter(databaseURI, { disableIndexFieldValidation: true });
-    const twoMegabytesFile = randomString(2048 * 1024);
-    await gfsAdapter.createFile('myFileName', twoMegabytesFile);
-    const gfsResult = await gfsAdapter.getFileData('myFileName');
-    expect(gfsResult.toString('utf8')).toBe(twoMegabytesFile);
-  });
-
   it('properly deletes a file from GridFS', async () => {
     const gfsAdapter = new GridFSBucketAdapter(databaseURI);
     await gfsAdapter.createFile('myFileName', 'a simple file');

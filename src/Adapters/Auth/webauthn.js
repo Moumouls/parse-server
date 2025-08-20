@@ -39,7 +39,7 @@ const getDomainWithoutWww = url =>
 const getBaseDomain = domain => {
   const splittedDomain = domain.split('.');
   // Handle localhost
-  if (splittedDomain.length === 1) return domain.trim();
+  if (splittedDomain.length === 1) { return domain.trim(); }
   // Classic domains
   return `${splittedDomain[splittedDomain.length - 2]}.${
     splittedDomain[splittedDomain.length - 1]
@@ -51,11 +51,11 @@ export const getOrigin = config =>
 
 const extractSignedChallenge = (signedChallenge, config) => {
   if (!signedChallenge)
-    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'signedChallenge is required.');
+  { throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'signedChallenge is required.'); }
   let expectedChallenge;
   try {
     expectedChallenge = verify(signedChallenge, getJwtSecret(config)).challenge;
-    if (!expectedChallenge) throw new Error();
+    if (!expectedChallenge) { throw new Error(); }
     return expectedChallenge;
   } catch (e) {
     throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'Invalid signedChallenge');
@@ -103,7 +103,7 @@ const registerOptions = (user, options = {}, config) => {
 
 // Verify the registration provided by the client
 const verifyRegister = async ({ signedChallenge, registration }, options = {}, config) => {
-  if (!registration) throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'registration is required.');
+  if (!registration) { throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'registration is required.'); }
   const expectedChallenge = extractSignedChallenge(signedChallenge, config);
   try {
     const { verified, registrationInfo } = await verifyRegistrationResponse({
@@ -141,7 +141,7 @@ const loginOptions = config => {
 const verifyLogin = async ({ authentication, signedChallenge }, options = {}, config, user) => {
   const dbAuthData = user && user.get('authData') && user.get('authData').webauthn;
   if (!authentication)
-    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'authentication is required.');
+  { throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'authentication is required.'); }
   const expectedChallenge = extractSignedChallenge(signedChallenge, config);
   try {
     const { verified, authenticationInfo } = await verifyAuthenticationResponse({
@@ -181,10 +181,10 @@ export const challenge = async (challengeData, authData, adapterConfig = {}, req
 
 export const validateSetUp = async (authData, adapterConfig = {}, request) => {
   if (!request.user && !request.master)
-    throw new Parse.Error(
-      Parse.Error.OTHER_CAUSE,
-      'Webauthn can only be configured on an already logged in user.'
-    );
+  { throw new Parse.Error(
+    Parse.Error.OTHER_CAUSE,
+    'Webauthn can only be configured on an already logged in user.'
+  ); }
   return { save: await verifyRegister(authData, adapterConfig.options, request.config) };
 };
 
@@ -192,7 +192,7 @@ export const validateUpdate = validateSetUp;
 
 export const validateLogin = async (authData, adapterConfig = {}, request) => {
   if (!request.original)
-    throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'User not found for webauthn login.');
+  { throw new Parse.Error(Parse.Error.OTHER_CAUSE, 'User not found for webauthn login.'); }
   // Will save updated counter of the credential
   // and avoid cloned/bugged authenticators
   return {
